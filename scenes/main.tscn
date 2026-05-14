@@ -1,0 +1,48 @@
+[gd_scene format=3 uid="uid://cj4r8mxn1qdvp"]
+
+[ext_resource type="Script" uid="uid://dod7qcm21ybdw" path="res://scripts/main.gd" id="1_mainscr"]
+[ext_resource type="Script" uid="uid://drmgnub6p8l5o" path="res://scripts/road.gd" id="2_roadscr"]
+[ext_resource type="Script" uid="uid://cnfys8f8g8h2a" path="res://scripts/obstacle_manager.gd" id="3_obsscr"]
+[ext_resource type="Script" uid="uid://bvk0l4ju72eov" path="res://scripts/car.gd" id="4_carscr"]
+[ext_resource type="Texture2D" uid="uid://cexsq42cr6wh5" path="res://assets/car.png" id="5_cartex"]
+
+[node name="Main" type="Node2D" unique_id=722060991]
+script = ExtResource("1_mainscr")
+
+[node name="Road" type="Node2D" parent="." unique_id=204207417]
+script = ExtResource("2_roadscr")
+
+[node name="ObstacleManager" type="Node2D" parent="." unique_id=1825455420]
+script = ExtResource("3_obsscr")
+
+[node name="Car" type="Node2D" parent="." unique_id=1857059141]
+position = Vector2(512, 690)
+script = ExtResource("4_carscr")
+
+[node name="Sprite2D" type="Sprite2D" parent="Car" unique_id=674790173]
+scale = Vector2(2, 2)
+texture = ExtResource("5_cartex")
+
+[node name="GameOverlay" type="CanvasLayer" parent="." unique_id=1154509141]
+visible = false
+
+[node name="BG" type="ColorRect" parent="GameOverlay" unique_id=1964106045]
+offset_right = 1024.0
+offset_bottom = 768.0
+color = Color(0, 0, 0, 0.65)
+
+[node name="GameOverLabel" type="Label" parent="GameOverlay" unique_id=1341791937]
+offset_top = 290.0
+offset_right = 1024.0
+offset_bottom = 370.0
+theme_override_font_sizes/font_size = 72
+text = "GAME OVER"
+horizontal_alignment = 1
+
+[node name="RestartLabel" type="Label" parent="GameOverlay" unique_id=2139444044]
+offset_top = 420.0
+offset_right = 1024.0
+offset_bottom = 470.0
+theme_override_font_sizes/font_size = 22
+text = "Press any key to restart"
+horizontal_alignment = 1

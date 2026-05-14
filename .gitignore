@@ -1,0 +1,7 @@
+# Godot
+.godot/
+*.translation
+/android/
+
+# macOS
+.DS_Store
