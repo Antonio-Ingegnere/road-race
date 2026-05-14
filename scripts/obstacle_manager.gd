@@ -2,6 +2,7 @@ extends Node2D
 
 const ROAD_LEFT := 312.0
 const ROAD_WIDTH := 400.0
+const LANE_COUNT := 3
 const SCROLL_SPEED := 250.0
 const OBS_W := 80.0
 const OBS_H := 128.0
@@ -48,10 +49,30 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+func _lane_center(lane: int) -> float:
+	return ROAD_LEFT + (ROAD_WIDTH / LANE_COUNT) * (lane + 0.5)
+
+
+func _occupied_lanes() -> Array[int]:
+	var lanes: Array[int] = []
+	for op in _obstacles:
+		var lane := int((op.x - ROAD_LEFT) / (ROAD_WIDTH / LANE_COUNT))
+		if lane not in lanes:
+			lanes.append(lane)
+	return lanes
+
+
 func _spawn() -> void:
-	var margin := OBS_W * 0.5 + 6.0
-	var x := randf_range(ROAD_LEFT + margin, ROAD_LEFT + ROAD_WIDTH - margin)
-	_obstacles.append(Vector2(x, -OBS_H * 0.5))
+	var occupied := _occupied_lanes()
+	# Never fill all lanes simultaneously — always leave at least one free
+	if occupied.size() >= LANE_COUNT - 1:
+		return
+	var free_lanes: Array[int] = []
+	for i in range(LANE_COUNT):
+		if i not in occupied:
+			free_lanes.append(i)
+	var chosen: int = free_lanes[randi() % free_lanes.size()]
+	_obstacles.append(Vector2(_lane_center(chosen), -OBS_H * 0.5))
 
 
 func _draw() -> void:
