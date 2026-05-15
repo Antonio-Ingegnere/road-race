@@ -9,16 +9,33 @@ const TILE_SIZE := 64
 const TILE_COLS := 8
 const TILE_ROWS := 60
 
+const TREE_HALF := 128.0         # half of 256x256 display size
+const TREE_FRAME_SIZE := 256     # source frame dimensions in the sprite sheet
+const TREE_COLS := 3             # sprite sheet columns
+const TREE_SPAWN_DIST := 600.0   # world pixels between spawn checks
+const TREE_SPAWN_CHANCE := 0.6   # probability each check produces a tree
+const TREE_FRAME_COUNT := 9
+const TREE_FRAME_DURATION := 0.14  # seconds per frame (~7 fps)
+
 var scroll_offset := 0.0
 var _world_scroll := 0.0
 var _car: Node2D
 var _asphalt_tex: Texture2D
 var _rotations: Array = []
+var _tree_tex: Texture2D
+var _trees: Array[Vector2] = []
+var _tree_dist_acc := 0.0
+var _tree_rng := RandomNumberGenerator.new()
+var _tree_frame := 0
+var _tree_frame_timer := 0.0
 
 
 func _ready() -> void:
 	_car = get_parent().get_node("Car")
 	_asphalt_tex = load("res://assets/asphalt.png")
+	_tree_tex = load("res://assets/anim_tree.png")
+	_tree_rng.seed = 7331
+
 	var rng := RandomNumberGenerator.new()
 	rng.seed = 42
 	for _r in range(TILE_ROWS):
@@ -33,7 +50,35 @@ func _process(delta: float) -> void:
 	var scroll_px := scroll_speed * delta
 	scroll_offset = fmod(scroll_offset + scroll_px, DASH_HEIGHT + DASH_GAP)
 	_world_scroll += scroll_px
+
+	for i in range(_trees.size()):
+		_trees[i].y += scroll_px
+	var screen_h := get_viewport_rect().size.y
+	_trees = _trees.filter(func(p: Vector2) -> bool: return p.y < screen_h + TREE_HALF)
+
+	_tree_dist_acc += scroll_px
+	if _tree_dist_acc >= TREE_SPAWN_DIST:
+		_tree_dist_acc -= TREE_SPAWN_DIST
+		if _tree_rng.randf() < TREE_SPAWN_CHANCE:
+			_spawn_tree()
+
+	_tree_frame_timer += delta
+	if _tree_frame_timer >= TREE_FRAME_DURATION:
+		_tree_frame_timer -= TREE_FRAME_DURATION
+		_tree_frame = (_tree_frame + 1) % TREE_FRAME_COUNT
+
 	queue_redraw()
+
+
+func _spawn_tree() -> void:
+	var screen_w := get_viewport_rect().size.x
+	var side := _tree_rng.randi() % 2
+	var x: float
+	if side == 0:
+		x = _tree_rng.randf_range(TREE_HALF, ROAD_LEFT - TREE_HALF)
+	else:
+		x = _tree_rng.randf_range(ROAD_LEFT + ROAD_WIDTH + TREE_HALF, screen_w - TREE_HALF)
+	_trees.append(Vector2(x, -TREE_HALF))
 
 
 func _draw() -> void:
@@ -44,13 +89,10 @@ func _draw() -> void:
 	draw_rect(Rect2(0.0, 0.0, size.x, size.y), Color(0.18, 0.50, 0.20))
 
 	# Tiled asphalt
-	# Tile world positions satisfy: ty = n*TILE_SIZE + _world_scroll for integer n
-	# So the topmost tile on screen starts at fmod(_world_scroll, TILE_SIZE) - TILE_SIZE
 	if _asphalt_tex:
 		var tile_start_y := fmod(_world_scroll, TILE_SIZE) - TILE_SIZE
 		var ty := tile_start_y
 		while ty < size.y:
-			# Stable world row: same formula gives same index as the tile scrolls down
 			var world_row := posmod(floori((ty - _world_scroll) / float(TILE_SIZE)), TILE_ROWS)
 			var col_idx := 0
 			var tx := ROAD_LEFT
@@ -66,6 +108,14 @@ func _draw() -> void:
 	# Redraw grass on both sides to clip tile spillover at road edges
 	draw_rect(Rect2(0.0, 0.0, ROAD_LEFT, size.y), Color(0.18, 0.50, 0.20))
 	draw_rect(Rect2(ROAD_LEFT + ROAD_WIDTH, 0.0, size.x - ROAD_LEFT - ROAD_WIDTH, size.y), Color(0.18, 0.50, 0.20))
+
+	# Trees on grass shoulders (animated sprite sheet: 3x3 grid of 256x256 frames, drawn at 128x128)
+	if _tree_tex:
+		var frame_col := _tree_frame % TREE_COLS
+		var frame_row := _tree_frame / TREE_COLS
+		var src := Rect2(frame_col * TREE_FRAME_SIZE, frame_row * TREE_FRAME_SIZE, TREE_FRAME_SIZE, TREE_FRAME_SIZE)
+		for p in _trees:
+			draw_texture_rect_region(_tree_tex, Rect2(p.x - TREE_HALF, p.y - TREE_HALF, TREE_HALF * 2, TREE_HALF * 2), src)
 
 	# Road shoulder lines
 	draw_line(Vector2(ROAD_LEFT, 0.0), Vector2(ROAD_LEFT, size.y), Color(1.0, 1.0, 1.0, 0.85), 4.0)
