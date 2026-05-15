@@ -1,6 +1,5 @@
 extends Node2D
 
-const SCROLL_SPEED := 250.0
 const ROAD_LEFT := 312.0
 const ROAD_WIDTH := 400.0
 const DASH_HEIGHT := 40.0
@@ -8,10 +7,16 @@ const DASH_GAP := 30.0
 const DASH_WIDTH := 5.0
 
 var scroll_offset := 0.0
+var _car: Node2D
+
+
+func _ready() -> void:
+	_car = get_parent().get_node("Car")
 
 
 func _process(delta: float) -> void:
-	scroll_offset = fmod(scroll_offset + SCROLL_SPEED * delta, DASH_HEIGHT + DASH_GAP)
+	var scroll_speed: float = _car.speed_kmh * _car.KMH_TO_PXS
+	scroll_offset = fmod(scroll_offset + scroll_speed * delta, DASH_HEIGHT + DASH_GAP)
 	queue_redraw()
 
 

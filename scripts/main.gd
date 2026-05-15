@@ -5,6 +5,10 @@ func _ready() -> void:
 	$ObstacleManager.hit_detected.connect(_on_hit)
 
 
+func _process(_delta: float) -> void:
+	$HUD/SpeedLabel.text = "%d km/h" % int($Car.speed_kmh)
+
+
 func _on_hit() -> void:
 	$Car.set_process(false)
 	$GameOverlay.visible = true

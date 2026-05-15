@@ -3,7 +3,7 @@ extends Node2D
 const ROAD_LEFT := 312.0
 const ROAD_WIDTH := 400.0
 const LANE_COUNT := 3
-const SCROLL_SPEED := 250.0
+const OBS_SPEED_KMH := 50.0
 const OBS_W := 80.0
 const OBS_H := 128.0
 # Hitbox half-extents used for collision (slightly smaller than visuals)
@@ -35,8 +35,9 @@ func _process(delta: float) -> void:
 		_spawn()
 
 	var screen_h := get_viewport_rect().size.y
+	var obs_scroll: float = (_car.speed_kmh - OBS_SPEED_KMH) * _car.KMH_TO_PXS * delta
 	for i in range(_obstacles.size()):
-		_obstacles[i].y += SCROLL_SPEED * delta
+		_obstacles[i].y += obs_scroll
 	_obstacles = _obstacles.filter(func(p: Vector2) -> bool: return p.y < screen_h + OBS_H)
 
 	var cp := _car.position
@@ -85,16 +86,16 @@ func _draw_obstacle_car(p: Vector2) -> void:
 	var hh := OBS_H * 0.5
 	# Body
 	draw_rect(Rect2(p.x - hw, p.y - hh, OBS_W, OBS_H), Color(0.72, 0.10, 0.10))
-	# Rear window (top — back of oncoming car)
-	draw_rect(Rect2(p.x - hw + 10, p.y - hh + 18, OBS_W - 20, 20), Color(0.50, 0.72, 0.90, 0.75))
-	# Taillights (very top)
-	draw_rect(Rect2(p.x - hw + 6, p.y - hh + 4, 16, 8), Color(0.95, 0.20, 0.20))
-	draw_rect(Rect2(p.x + hw - 22, p.y - hh + 4, 16, 8), Color(0.95, 0.20, 0.20))
-	# Windshield (near bottom — front faces player)
-	draw_rect(Rect2(p.x - hw + 10, p.y + hh - 42, OBS_W - 20, 22), Color(0.50, 0.72, 0.90, 0.85))
-	# Headlights (very bottom)
-	draw_rect(Rect2(p.x - hw + 6, p.y + hh - 14, 16, 10), Color(1.00, 1.00, 0.70))
-	draw_rect(Rect2(p.x + hw - 22, p.y + hh - 14, 16, 10), Color(1.00, 1.00, 0.70))
+	# Windshield (top — front of car, facing away from player)
+	draw_rect(Rect2(p.x - hw + 10, p.y - hh + 18, OBS_W - 20, 22), Color(0.50, 0.72, 0.90, 0.85))
+	# Headlights (very top)
+	draw_rect(Rect2(p.x - hw + 6, p.y - hh + 4, 16, 10), Color(1.00, 1.00, 0.70))
+	draw_rect(Rect2(p.x + hw - 22, p.y - hh + 4, 16, 10), Color(1.00, 1.00, 0.70))
+	# Rear window (bottom — back of car, facing player)
+	draw_rect(Rect2(p.x - hw + 10, p.y + hh - 38, OBS_W - 20, 20), Color(0.50, 0.72, 0.90, 0.75))
+	# Taillights (very bottom, closest to player)
+	draw_rect(Rect2(p.x - hw + 6, p.y + hh - 12, 16, 8), Color(0.95, 0.20, 0.20))
+	draw_rect(Rect2(p.x + hw - 22, p.y + hh - 12, 16, 8), Color(0.95, 0.20, 0.20))
 	# Wheels
 	draw_rect(Rect2(p.x - hw - 8, p.y - hh + 12, 10, 24), Color(0.12, 0.12, 0.12))
 	draw_rect(Rect2(p.x + hw - 2, p.y - hh + 12, 10, 24), Color(0.12, 0.12, 0.12))
