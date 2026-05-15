@@ -79,6 +79,10 @@ func _separate_car() -> void:
 
 
 
+func get_obstacle_positions() -> Array[Vector2]:
+	return _obstacles
+
+
 func stop() -> void:
 	set_process(false)
 
