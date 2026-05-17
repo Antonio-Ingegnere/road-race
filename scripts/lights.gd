@@ -1,7 +1,7 @@
 extends Node2D
 
 const CAR_FRONT_OFFSET := 64.0
-const OBS_REAR_OFFSET  := 48.0
+const OBS_REAR_OFFSET  := 64.0
 
 const CONE_LENGTH  := 300.0
 const CONE_HW_NEAR := 32.0
