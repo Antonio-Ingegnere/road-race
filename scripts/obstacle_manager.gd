@@ -48,7 +48,8 @@ func _process(delta: float) -> void:
 	var obs_scroll: float = (_car.speed_kmh - OBS_SPEED_KMH) * _car.KMH_TO_PXS * delta
 	for o in _obstacles:
 		o["pos"] = o["pos"] + Vector2(0.0, obs_scroll)
-	var cull_y: float = OBS_TEX_SIZE * OBS_SCALE * 0.5
+	# Extended cull: keep alive until front lights (64 rear offset + 180 cone) fade off screen
+	var cull_y: float = OBS_TEX_SIZE * OBS_SCALE * 0.5 + 244.0
 	_obstacles = _obstacles.filter(func(o) -> bool: return o["pos"].y < screen_h + cull_y)
 
 	if _invincible_timer > 0.0:

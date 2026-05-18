@@ -71,9 +71,14 @@ func _draw_headlights(car_pos: Vector2, night: float) -> void:
 
 
 func _draw_obs_headlights(op: Vector2, night: float) -> void:
+	var screen_h: float = get_viewport_rect().size.y
+	var off_screen: float = op.y - (screen_h + OBS_REAR_OFFSET)
+	var dim: float = clamp(1.0 - off_screen / OBS_CONE_LENGTH, 0.0, 1.0)
+	if dim <= 0.0:
+		return
 	var near_y := op.y - OBS_REAR_OFFSET
 	var far_y  := near_y - OBS_CONE_LENGTH
-	var bright := Color(1.00, 0.95, 0.70, night * 0.575)
+	var bright := Color(1.00, 0.95, 0.70, night * 0.575 * dim)
 	var fade   := Color(1.00, 0.95, 0.70, 0.00)
 	# Left beam
 	draw_polygon(
