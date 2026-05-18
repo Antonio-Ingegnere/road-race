@@ -14,11 +14,14 @@ const CAR_VIS_HH := 64.0
 # Per obstacle type: [vis_hw, vis_hh, texture_path]
 # Bounds measured from opaque pixel extents at scale 2x.
 const OBS_TYPE_DATA := [
-	[46.0, 64.0, "res://assets/HondaCivic.png"],    # 0
-	[44.0, 64.0, "res://assets/JeepWrangler2.png"], # 1
+	[46.0, 64.0, "res://assets/HondaCivic.png"],                    # 0
+	[44.0, 64.0, "res://assets/JeepWrangler2.png"],                 # 1
+	[39.0, 64.0, "res://assets/ChevroletElCamino-1968x64.png"],     # 2
 ]
 
 var _textures: Array[Texture2D] = []
+var _tex_half_w: Array[float] = []
+var _tex_half_h: Array[float] = []
 var _obstacles: Array = []  # each: {"pos": Vector2, "type": int}
 var _spawn_timer := 0.0
 var _spawn_interval := 1.8
@@ -32,7 +35,10 @@ signal hit_detected
 func _ready() -> void:
 	_car = get_parent().get_node("Car")
 	for entry in OBS_TYPE_DATA:
-		_textures.append(load(entry[2]))
+		var tex: Texture2D = load(entry[2])
+		_textures.append(tex)
+		_tex_half_w.append(tex.get_width() * 0.5)
+		_tex_half_h.append(tex.get_height() * 0.5)
 
 
 func _process(delta: float) -> void:
@@ -48,8 +54,8 @@ func _process(delta: float) -> void:
 	var obs_scroll: float = (_car.speed_kmh - OBS_SPEED_KMH) * _car.KMH_TO_PXS * delta
 	for o in _obstacles:
 		o["pos"] = o["pos"] + Vector2(0.0, obs_scroll)
-	# Extended cull: keep alive until front lights (64 rear offset + 180 cone) fade off screen
-	var cull_y: float = OBS_TEX_SIZE * OBS_SCALE * 0.5 + 244.0
+	# Extended cull: keep alive until front lights (64 rear offset + 300 cone) fade off screen
+	var cull_y: float = OBS_TEX_SIZE * OBS_SCALE * 0.5 + 364.0
 	_obstacles = _obstacles.filter(func(o) -> bool: return o["pos"].y < screen_h + cull_y)
 
 	if _invincible_timer > 0.0:
@@ -132,9 +138,8 @@ func _spawn() -> void:
 
 
 func _draw() -> void:
-	var half: float = OBS_TEX_SIZE * 0.5
 	for o in _obstacles:
 		var t: int = o["type"]
 		draw_set_transform(o["pos"], 0.0, Vector2(OBS_SCALE, OBS_SCALE))
-		draw_texture(_textures[t], Vector2(-half, -half))
+		draw_texture(_textures[t], Vector2(-_tex_half_w[t], -_tex_half_h[t]))
 	draw_set_transform(Vector2.ZERO)

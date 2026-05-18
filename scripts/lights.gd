@@ -7,10 +7,9 @@ const CONE_LENGTH  := 300.0
 const CONE_HW_NEAR := 32.0
 const CONE_HW_FAR  := 150.0
 
-# Obstacle headlights — 60% of player cone
-const OBS_CONE_LENGTH  := 180.0
-const OBS_CONE_HW_NEAR := 19.0
-const OBS_CONE_HW_FAR  := 90.0
+const OBS_CONE_LENGTH  := 300.0
+const OBS_CONE_HW_NEAR := 32.0
+const OBS_CONE_HW_FAR  := 150.0
 
 var _car: Node2D
 var _obstacle_manager: Node2D
@@ -83,20 +82,20 @@ func _draw_obs_headlights(op: Vector2, night: float) -> void:
 	# Left beam
 	draw_polygon(
 		PackedVector2Array([
-			Vector2(op.x - 19, near_y),
-			Vector2(op.x - 6,  near_y),
-			Vector2(op.x + 14, far_y),
-			Vector2(op.x - 90, far_y),
+			Vector2(op.x - 32, near_y),
+			Vector2(op.x - 10, near_y),
+			Vector2(op.x + 23,  far_y),
+			Vector2(op.x - 150, far_y),
 		]),
 		PackedColorArray([bright, bright, fade, fade])
 	)
 	# Right beam
 	draw_polygon(
 		PackedVector2Array([
-			Vector2(op.x + 6,  near_y),
-			Vector2(op.x + 19, near_y),
-			Vector2(op.x + 90, far_y),
-			Vector2(op.x - 14, far_y),
+			Vector2(op.x + 10, near_y),
+			Vector2(op.x + 32, near_y),
+			Vector2(op.x + 150, far_y),
+			Vector2(op.x - 23,  far_y),
 		]),
 		PackedColorArray([bright, bright, fade, fade])
 	)
