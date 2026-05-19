@@ -12,11 +12,22 @@ const COLOR_NIGHT    := Color(0.00, 0.02, 0.15, 0.78)
 var intensity: float = 0.0  # 0 = full day, 1 = full night (read by lights.gd)
 
 var _time := 0.0
+var _cycle_enabled := true
 @onready var _overlay: ColorRect = $Overlay
 
 
+func _ready() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load("res://config.cfg") == OK:
+		_time = clamp(float(cfg.get_value("day_night", "start_time", 0.0)), 0.0, CYCLE)
+		_cycle_enabled = bool(cfg.get_value("day_night", "enabled", true))
+	intensity = _compute_intensity(_time / CYCLE)
+	_overlay.color = _sky_color(intensity)
+
+
 func _process(delta: float) -> void:
-	_time = fmod(_time + delta, CYCLE)
+	if _cycle_enabled:
+		_time = fmod(_time + delta, CYCLE)
 	var p := _time / CYCLE
 	intensity = _compute_intensity(p)
 	_overlay.color = _sky_color(intensity)

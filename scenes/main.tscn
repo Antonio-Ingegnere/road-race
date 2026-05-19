@@ -6,7 +6,8 @@
 [ext_resource type="Script" uid="uid://bvk0l4ju72eov" path="res://scripts/car.gd" id="4_carscr"]
 [ext_resource type="Texture2D" uid="uid://cexsq42cr6wh5" path="res://assets/car.png" id="5_cartex"]
 [ext_resource type="Script" uid="uid://bgkmlei8lj03s" path="res://scripts/day_night.gd" id="6_dnscr"]
-[ext_resource type="Script" path="res://scripts/lights.gd" id="7_lightsscr"]
+[ext_resource type="Script" uid="uid://x5lffdyqe2v3" path="res://scripts/lights.gd" id="7_lightsscr"]
+[ext_resource type="Script" uid="uid://dkhnyf5fhrb1d" path="res://scripts/rain.gd" id="8_rainscr"]
 
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")
@@ -35,13 +36,18 @@ mouse_filter = 2
 color = Color(0, 0, 0, 0)
 
 [node name="Lights" type="CanvasLayer" parent="." unique_id=555666777]
-layer = 1
 
 [node name="LightsDraw" type="Node2D" parent="Lights" unique_id=555666778]
 script = ExtResource("7_lightsscr")
 
-[node name="HUD" type="CanvasLayer" parent="." unique_id=312456789]
+[node name="Rain" type="CanvasLayer" parent="." unique_id=777888999]
 layer = 2
+
+[node name="RainDraw" type="Node2D" parent="Rain" unique_id=777888998]
+script = ExtResource("8_rainscr")
+
+[node name="HUD" type="CanvasLayer" parent="." unique_id=312456789]
+layer = 3
 
 [node name="LivesLabel" type="Label" parent="HUD" unique_id=312456791]
 offset_left = 10.0
@@ -62,7 +68,7 @@ theme_override_font_sizes/font_size = 28
 horizontal_alignment = 2
 
 [node name="GameOverlay" type="CanvasLayer" parent="." unique_id=1154509141]
-layer = 3
+layer = 4
 visible = false
 
 [node name="BG" type="ColorRect" parent="GameOverlay" unique_id=1964106045]
