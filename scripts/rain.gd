@@ -13,7 +13,11 @@ var _drop_lens:   PackedFloat32Array
 var _drop_alphas: PackedFloat32Array
 
 var _splashes: Array  # each: [x, y, age]
-var _spawn_width: float = 0.0  # screen width + rightward margin to compensate leftward drift
+var _spawn_width: float  = 0.0
+var _splash_interval: float = 0.0
+var _splash_timer: float = 0.0
+var _vp_size: Vector2
+var _car: Node2D
 
 
 func _ready() -> void:
@@ -26,15 +30,17 @@ func _ready() -> void:
 	if not enabled:
 		set_process(false)
 		return
-	var vp := get_viewport_rect()
-	var drift: float = vp.size.y * abs(DROP_DIR.x / DROP_DIR.y)
-	_spawn_width = vp.size.x + drift
+	_car = get_parent().get_parent().get_node("Car")
+	_vp_size = get_viewport_rect().size
+	var drift: float = _vp_size.y * abs(DROP_DIR.x / DROP_DIR.y)
+	_spawn_width = _vp_size.x + drift
+	_splash_interval = 1.0 / (count * 0.12)
 	_drops.resize(count)
 	_drop_speeds.resize(count)
 	_drop_lens.resize(count)
 	_drop_alphas.resize(count)
 	for i in range(count):
-		_drops[i] = Vector2(randf() * _spawn_width, randf() * vp.size.y)
+		_drops[i] = Vector2(randf() * _spawn_width, randf() * _vp_size.y)
 		_randomize_drop(i)
 
 
@@ -45,19 +51,27 @@ func _randomize_drop(i: int) -> void:
 
 
 func _process(delta: float) -> void:
-	var vp := get_viewport_rect()
 	for i in range(_drops.size()):
 		var p: Vector2 = _drops[i] + DROP_DIR * (DROP_SPEED * _drop_speeds[i] * delta)
-		if p.y > vp.size.y:
-			_splashes.append([p.x, vp.size.y, 0.0])
+		if p.y > _vp_size.y:
+			# [x, y, age, scrolls_with_road]
+			_splashes.append([p.x, _vp_size.y, 0.0, false])
 			p = Vector2(randf() * _spawn_width, -DROP_LEN_BASE * _drop_lens[i])
 			_randomize_drop(i)
 		_drops[i] = p
 
+	_splash_timer += delta
+	while _splash_timer >= _splash_interval:
+		_splash_timer -= _splash_interval
+		_splashes.append([randf() * _vp_size.x, randf() * _vp_size.y, 0.0, true])
+
+	var road_scroll: float = _car.speed_kmh * _car.KMH_TO_PXS * delta
 	var si := 0
 	while si < _splashes.size():
+		if _splashes[si][3]:
+			_splashes[si][1] += road_scroll
 		_splashes[si][2] += delta
-		if _splashes[si][2] >= SPLASH_LIFETIME:
+		if _splashes[si][2] >= SPLASH_LIFETIME or _splashes[si][1] > _vp_size.y + SPLASH_MAX_RADIUS:
 			_splashes.remove_at(si)
 		else:
 			si += 1
