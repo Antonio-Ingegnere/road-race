@@ -140,6 +140,8 @@ func _spawn() -> void:
 func _draw() -> void:
 	for o in _obstacles:
 		var t: int = o["type"]
+		draw_set_transform(o["pos"] + Vector2(8.0, 10.0), 0.0, Vector2(OBS_SCALE, OBS_SCALE))
+		draw_texture(_textures[t], Vector2(-_tex_half_w[t], -_tex_half_h[t]), Color(0.0, 0.0, 0.0, 0.40))
 		draw_set_transform(o["pos"], 0.0, Vector2(OBS_SCALE, OBS_SCALE))
 		draw_texture(_textures[t], Vector2(-_tex_half_w[t], -_tex_half_h[t]))
 	draw_set_transform(Vector2.ZERO)

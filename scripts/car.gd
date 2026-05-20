@@ -11,6 +11,16 @@ const CAR_HALF_WIDTH := 42.0
 
 var speed_kmh := MIN_SPEED_KMH
 
+var _shadow_tex: Texture2D
+var _shadow_hw: float
+var _shadow_hh: float
+
+
+func _ready() -> void:
+	_shadow_tex = load("res://assets/car.png")
+	_shadow_hw = _shadow_tex.get_width() * 0.5
+	_shadow_hh = _shadow_tex.get_height() * 0.5
+
 
 func _process(delta: float) -> void:
 	if Input.is_action_pressed("ui_up"):
@@ -24,3 +34,10 @@ func _process(delta: float) -> void:
 		position.x += LATERAL_SPEED * delta
 
 	position.x = clamp(position.x, ROAD_LEFT + CAR_HALF_WIDTH, ROAD_RIGHT - CAR_HALF_WIDTH)
+	queue_redraw()
+
+
+func _draw() -> void:
+	draw_set_transform(Vector2(8.0, 10.0), 0.0, Vector2(2.0, 2.0))
+	draw_texture(_shadow_tex, Vector2(-_shadow_hw, -_shadow_hh), Color(0.0, 0.0, 0.0, 0.40))
+	draw_set_transform(Vector2.ZERO)
