@@ -9,7 +9,7 @@
 [ext_resource type="Script" uid="uid://x5lffdyqe2v3" path="res://scripts/lights.gd" id="7_lightsscr"]
 [ext_resource type="Script" uid="uid://dkhnyf5fhrb1d" path="res://scripts/rain.gd" id="8_rainscr"]
 [ext_resource type="Script" uid="uid://b4duri7rxmfae" path="res://scripts/puddle_manager.gd" id="9_puddlescr"]
-[ext_resource type="Script" path="res://scripts/elk_manager.gd" id="10_elkscr"]
+[ext_resource type="Script" uid="uid://b2voxne02v30w" path="res://scripts/elk_manager.gd" id="10_elkscr"]
 
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")

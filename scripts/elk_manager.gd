@@ -72,12 +72,13 @@ func _spawn() -> void:
 	var hw: float = FRAME_W * ELK_SCALE * 0.5
 	var x: float = ROAD_LEFT + ROAD_WIDTH + offset + hw if right \
 		else ROAD_LEFT - offset - hw
+	var state := randi() % 2
 	_elks.append({
 		"pos": Vector2(x, -FRAME_H * ELK_SCALE * 0.5),
 		"right": right,
-		"state": 0,
-		"frame": 0,
-		"state_timer": randf_range(STAND_MIN, STAND_MAX),
+		"state": state,
+		"frame": state,
+		"state_timer": randf_range(STAND_MIN, STAND_MAX) if state == 0 else randf_range(EAT_MIN, EAT_MAX),
 	})
 
 
