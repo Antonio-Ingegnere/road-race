@@ -14,7 +14,7 @@ config/name="RoadRace"
 config/version="0.0.2"
 run/main_scene="uid://cj4r8mxn1qdvp"
 config/features=PackedStringArray("4.6", "Mobile")
-config/icon="res://icon.svg"
+config/icon="res://icon.png"
 config/run/main_scene="res://scenes/main.tscn"
 
 [display]
@@ -31,3 +31,4 @@ window/stretch/mode="canvas_items"
 
 rendering_device/driver.windows="d3d12"
 renderer/rendering_method="mobile"
+textures/vram_compression/import_etc2_astc=true
