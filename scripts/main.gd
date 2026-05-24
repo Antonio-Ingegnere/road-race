@@ -10,6 +10,7 @@ var _blink_timer := 0.0
 
 func _ready() -> void:
 	$ObstacleManager.hit_detected.connect(_on_hit)
+	$ElkManager.elk_hit_car.connect(_on_hit)
 	_update_lives()
 
 
@@ -30,6 +31,7 @@ func _on_hit() -> void:
 		$Car/Sprite2D.visible = true
 		$Car.set_process(false)
 		$ObstacleManager.stop()
+		$ElkManager.set_process(false)
 		$GameOverlay.visible = true
 	else:
 		_blink_timer = BLINK_DURATION

@@ -10,6 +10,7 @@
 [ext_resource type="Script" uid="uid://dkhnyf5fhrb1d" path="res://scripts/rain.gd" id="8_rainscr"]
 [ext_resource type="Script" uid="uid://b4duri7rxmfae" path="res://scripts/puddle_manager.gd" id="9_puddlescr"]
 [ext_resource type="Script" uid="uid://b2voxne02v30w" path="res://scripts/elk_manager.gd" id="10_elkscr"]
+[ext_resource type="Script" uid="uid://dtxqg0hr8vgp" path="res://scripts/settings_menu.gd" id="11_settingsscr"]
 
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")
@@ -99,3 +100,7 @@ offset_bottom = 470.0
 theme_override_font_sizes/font_size = 22
 text = "Press any key to restart"
 horizontal_alignment = 1
+
+[node name="SettingsMenu" type="CanvasLayer" parent="." unique_id=444555666]
+layer = 10
+script = ExtResource("11_settingsscr")
