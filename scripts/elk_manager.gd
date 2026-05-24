@@ -38,7 +38,8 @@ const ELK_HIT_HH := 44.0
 const CAR_VIS_HW  := 40.0
 const CAR_VIS_HH  := 64.0
 
-const SHADOW_RADIUS := 28.0
+const SHADOW_RADIUS  := 28.0
+const JUMP_ARC_HEIGHT := 48.0  # px upward at the arc peak
 
 var _tex_base: Texture2D
 var _tex_jump: Texture2D
@@ -235,16 +236,22 @@ func _draw() -> void:
 	for elk in _elks:
 		var state: int = elk["state"]
 
-		# Shadow circle at landing lane, visible while elk is preparing / in flight
+		# Shadow stays on the ground at the landing spot (no arc offset)
 		if state == STATE_JUMP_RAISE or state == STATE_JUMP_OUT:
 			draw_circle(Vector2(elk["land_x"], elk["pos"].y), SHADOW_RADIUS,
 				Color(0.0, 0.0, 0.0, 0.30))
+
+		# Arc offset: bulge upward (−y) during both jump phases
+		var arc_y: float = 0.0
+		if state == STATE_JUMP_OUT or state == STATE_JUMP_BACK:
+			arc_y = -sin(elk["jump_t"] * PI) * JUMP_ARC_HEIGHT
+		var draw_pos: Vector2 = elk["pos"] + Vector2(0.0, arc_y)
 
 		# Base sprite faces right; jump sprite faces left — both use the same rule:
 		# right=true → no flip, right=false → flip.
 		var sx: float = ELK_SCALE if elk["right"] else -ELK_SCALE
 
-		draw_set_transform(elk["pos"], 0.0, Vector2(sx, ELK_SCALE))
+		draw_set_transform(draw_pos, 0.0, Vector2(sx, ELK_SCALE))
 
 		match state:
 			STATE_STAND, STATE_EAT, STATE_JUMP_RAISE:
