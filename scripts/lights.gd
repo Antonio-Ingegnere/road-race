@@ -1,7 +1,7 @@
 extends Node2D
 
 const CAR_FRONT_OFFSET := 64.0
-const OBS_REAR_OFFSET  := 64.0
+const OBS_REAR_OFFSET  := 48.0
 
 const CONE_LENGTH  := 300.0
 const CONE_HW_NEAR := 32.0
@@ -107,8 +107,8 @@ func _draw_taillights(op: Vector2, night: float) -> void:
 	var fade := Color(1.00, 0.10, 0.08, 0.00)
 	draw_polygon(
 		PackedVector2Array([
-			Vector2(op.x - 30, rear_y),
-			Vector2(op.x + 30, rear_y),
+			Vector2(op.x - 30,  rear_y),
+			Vector2(op.x + 30,  rear_y),
 			Vector2(op.x + 60, rear_y + 45.0),
 			Vector2(op.x - 60, rear_y + 45.0),
 		]),

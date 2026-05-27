@@ -1,18 +1,18 @@
 extends Node2D
 
-const ROAD_LEFT := 312.0
+const ROAD_LEFT := 760.0
 const ROAD_WIDTH := 400.0
-const DASH_HEIGHT := 40.0
-const DASH_GAP := 30.0
-const DASH_WIDTH := 5.0
-const TILE_SIZE := 64
-const TILE_COLS := 8
+const DASH_HEIGHT := 60.0
+const DASH_GAP := 45.0
+const DASH_WIDTH := 7.5
+const TILE_SIZE := 96
+const TILE_COLS := 12
 const TILE_ROWS := 60
 
-const TREE_HALF := 128.0         # half of 256x256 display size
+const TREE_HALF := 192.0         # half of 384x384 display size
 const TREE_FRAME_SIZE := 256     # source frame dimensions in the sprite sheet
 const TREE_COLS := 3             # sprite sheet columns
-const TREE_SPAWN_DIST := 600.0   # world pixels between spawn checks
+const TREE_SPAWN_DIST := 900.0   # world pixels between spawn checks
 const TREE_SPAWN_CHANCE := 0.6   # probability each check produces a tree
 const TREE_FRAME_COUNT := 9
 const TREE_FRAME_DURATION := 0.14  # seconds per frame (~7 fps)
@@ -83,7 +83,7 @@ func _spawn_tree() -> void:
 
 func _draw() -> void:
 	var size := get_viewport_rect().size
-	var half := TILE_SIZE * 0.5
+	var half := TILE_SIZE * 0.5  # = 48; texture is 64px source drawn at 1.5x scale
 
 	# Grass background
 	draw_rect(Rect2(0.0, 0.0, size.x, size.y), Color(0.18, 0.50, 0.20))
@@ -98,8 +98,8 @@ func _draw() -> void:
 			var tx := ROAD_LEFT
 			while tx < ROAD_LEFT + ROAD_WIDTH + TILE_SIZE:
 				var rot: float = _rotations[world_row][col_idx % TILE_COLS]
-				draw_set_transform(Vector2(tx + half, ty + half), rot)
-				draw_texture(_asphalt_tex, Vector2(-half, -half))
+				draw_set_transform(Vector2(tx + half, ty + half), rot, Vector2(1.5, 1.5))
+				draw_texture(_asphalt_tex, Vector2(-32.0, -32.0))
 				col_idx += 1
 				tx += TILE_SIZE
 			ty += TILE_SIZE

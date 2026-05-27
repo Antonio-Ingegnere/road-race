@@ -1,9 +1,11 @@
 extends CanvasLayer
 
-const VP_W := 1024.0
-const VP_H := 768.0
+const VP_W := 1920.0
+const VP_H := 1080.0
 const PANEL_W := 500.0
-const PANEL_H := 480.0
+const PANEL_H := 540.0
+
+const RESOLUTIONS := ["1280x720", "1920x1080", "2560x1440", "3840x2160"]
 
 var _widgets: Dictionary = {}
 var _cfg := ConfigFile.new()
@@ -49,6 +51,9 @@ func _on_cancel() -> void:
 # ── Config I/O ─────────────────────────────────────────────────────────────────
 
 func _load_values() -> void:
+	var saved_res: String = str(_cfg.get_value("display", "resolution", "1280x720"))
+	var res_idx := RESOLUTIONS.find(saved_res)
+	_widgets["resolution"].selected = max(res_idx, 0)
 	_widgets["dn_enabled"].button_pressed  = bool(_cfg.get_value("day_night", "enabled",    false))
 	_set_slider(_widgets["dn_start"],       float(_cfg.get_value("day_night", "start_time", 10.0)))
 	_widgets["rain_enabled"].button_pressed = bool(_cfg.get_value("rain",      "enabled",    true))
@@ -59,6 +64,7 @@ func _load_values() -> void:
 
 
 func _save_values() -> void:
+	_cfg.set_value("display",   "resolution",   RESOLUTIONS[_widgets["resolution"].selected])
 	_cfg.set_value("day_night", "enabled",      _widgets["dn_enabled"].button_pressed)
 	_cfg.set_value("day_night", "start_time",   _widgets["dn_start"].value)
 	_cfg.set_value("rain",      "enabled",      _widgets["rain_enabled"].button_pressed)
@@ -100,6 +106,12 @@ func _build_ui() -> void:
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 26)
 	vbox.add_child(title)
+
+	vbox.add_child(_make_separator())
+
+	# ── Display ──
+	_add_section_label(vbox, "Display")
+	_widgets["resolution"] = _add_option_button(vbox, "Resolution", RESOLUTIONS)
 
 	vbox.add_child(_make_separator())
 
@@ -213,6 +225,25 @@ func _add_slider(parent: Control, label: String,
 	)
 
 	return slider
+
+
+func _add_option_button(parent: Control, label: String, options: Array) -> OptionButton:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+	parent.add_child(row)
+
+	var lbl := Label.new()
+	lbl.text = label
+	lbl.custom_minimum_size = Vector2(110, 0)
+	row.add_child(lbl)
+
+	var btn := OptionButton.new()
+	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	for opt in options:
+		btn.add_item(opt)
+	row.add_child(btn)
+
+	return btn
 
 
 func _set_slider(slider: HSlider, value: float) -> void:

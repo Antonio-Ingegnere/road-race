@@ -1,12 +1,12 @@
 extends Node2D
 
-const KMH_TO_PXS := 5.0
+const KMH_TO_PXS := 7.5
 const MIN_SPEED_KMH := 50.0
 const MAX_SPEED_KMH := 220.0
 const SPEED_CHANGE_RATE := 60.0  # km/h per second
 const LATERAL_SPEED := 420.0
-const ROAD_LEFT := 312.0
-const ROAD_RIGHT := 712.0
+const ROAD_LEFT := 760.0
+const ROAD_RIGHT := 1160.0
 const CAR_HALF_WIDTH := 42.0
 
 var speed_kmh := MIN_SPEED_KMH
@@ -38,6 +38,6 @@ func _process(delta: float) -> void:
 
 
 func _draw() -> void:
-	draw_set_transform(Vector2(8.0, 10.0), 0.0, Vector2(2.0, 2.0))
+	draw_set_transform(Vector2(6.0, 7.5), 0.0, Vector2(2.0, 2.0))
 	draw_texture(_shadow_tex, Vector2(-_shadow_hw, -_shadow_hh), Color(0.0, 0.0, 0.0, 0.40))
 	draw_set_transform(Vector2.ZERO)

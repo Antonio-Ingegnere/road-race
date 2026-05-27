@@ -1,6 +1,6 @@
 extends Node2D
 
-const ROAD_LEFT  := 312.0
+const ROAD_LEFT  := 760.0
 const ROAD_WIDTH := 400.0
 const CAR_VIS_HW := 40.0
 const CAR_VIS_HH := 64.0
@@ -11,8 +11,8 @@ const SPAWN_CHANCE    := 0.8
 const DRIFT_CHANCE    := 0.8
 
 # Opaque half-extents at PUDDLE_SCALE (measured: vis_hw=32, vis_hh=12.5 at 1x)
-const HIT_HW := 48.0   # 32.0 * 1.5
-const HIT_HH := 18.75  # 12.5 * 1.5
+const HIT_HW := 48.0    # 32.0 * 1.5
+const HIT_HH := 18.75   # 12.5 * 1.5
 
 var _tex: Texture2D
 var _tex_hw: float

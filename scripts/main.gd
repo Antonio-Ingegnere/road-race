@@ -9,9 +9,27 @@ var _blink_timer := 0.0
 
 
 func _ready() -> void:
+	_apply_resolution.call_deferred()
 	$ObstacleManager.hit_detected.connect(_on_hit)
 	$ElkManager.elk_hit_car.connect(_on_hit)
 	_update_lives()
+
+
+func _apply_resolution() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load("res://config.cfg") != OK:
+		return
+	var res_str: String = str(cfg.get_value("display", "resolution", "1280x720"))
+	var parts := res_str.split("x")
+	if parts.size() != 2:
+		return
+	var w := int(parts[0])
+	var h := int(parts[1])
+	var win := get_window()
+	win.mode = Window.MODE_WINDOWED
+	win.size = Vector2i(w, h)
+	var screen := DisplayServer.screen_get_usable_rect()
+	win.position = screen.position + (screen.size - win.size) / 2
 
 
 func _process(delta: float) -> void:

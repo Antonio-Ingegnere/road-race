@@ -1,6 +1,6 @@
 extends Node2D
 
-const ROAD_LEFT := 312.0
+const ROAD_LEFT := 760.0
 const ROAD_WIDTH := 400.0
 const LANE_COUNT := 3
 const OBS_SPEED_KMH := 50.0
@@ -16,7 +16,7 @@ const CAR_VIS_HH := 64.0
 const OBS_TYPE_DATA := [
 	[46.0, 64.0, "res://assets/HondaCivic.png"],                    # 0
 	[44.0, 64.0, "res://assets/JeepWrangler2.png"],                 # 1
-	[39.0, 64.0, "res://assets/ChevroletElCamino-1968x64.png"],     # 2
+	[39.5, 64.0, "res://assets/ChevroletElCamino-1968x64.png"],     # 2
 ]
 
 var _textures: Array[Texture2D] = []
@@ -54,8 +54,8 @@ func _process(delta: float) -> void:
 	var obs_scroll: float = (_car.speed_kmh - OBS_SPEED_KMH) * _car.KMH_TO_PXS * delta
 	for o in _obstacles:
 		o["pos"] = o["pos"] + Vector2(0.0, obs_scroll)
-	# Extended cull: keep alive until front lights (64 rear offset + 300 cone) fade off screen
-	var cull_y: float = OBS_TEX_SIZE * OBS_SCALE * 0.5 + 364.0
+	# Extended cull: keep alive until front lights (48 rear offset + 225 cone) fade off screen
+	var cull_y: float = OBS_TEX_SIZE * OBS_SCALE * 0.5 + 273.0
 	_obstacles = _obstacles.filter(func(o) -> bool: return o["pos"].y < screen_h + cull_y)
 
 	if _invincible_timer > 0.0:

@@ -9,16 +9,16 @@ const STATE_JUMP_OUT   := 3  # flying from side → road lane
 const STATE_ON_ROAD    := 4  # landed on road, acts as obstacle
 const STATE_JUMP_BACK  := 5  # flying from road lane → opposite side
 
-const ROAD_LEFT  := 312.0
+const ROAD_LEFT  := 760.0
 const ROAD_WIDTH := 400.0
 const LANE_COUNT := 3
 
 const FRAME_W   := 64
 const FRAME_H   := 64
-const ELK_SCALE := 2.0
+const ELK_SCALE := 1.5
 
-const SIDE_OFFSET_MIN := 5.0
-const SIDE_OFFSET_MAX := 20.0
+const SIDE_OFFSET_MIN := 3.75
+const SIDE_OFFSET_MAX := 15.0
 
 const SPAWN_INTERVAL := 4.0
 
@@ -33,13 +33,13 @@ const ON_ROAD_TIME    := 0.45
 const JUMP_FRAME_TIMES := [0.18, 0.22, 0.22, 0.18]
 const JUMP_TOTAL_TIME  := 0.80
 
-const ELK_HIT_HW := 44.0
-const ELK_HIT_HH := 44.0
+const ELK_HIT_HW := 33.0
+const ELK_HIT_HH := 33.0
 const CAR_VIS_HW  := 40.0
 const CAR_VIS_HH  := 64.0
 
-const SHADOW_RADIUS  := 28.0
-const JUMP_ARC_HEIGHT := 48.0  # px upward at the arc peak
+const SHADOW_RADIUS  := 21.0
+const JUMP_ARC_HEIGHT := 36.0  # px upward at the arc peak
 
 var _tex_base: Texture2D
 var _tex_jump: Texture2D
