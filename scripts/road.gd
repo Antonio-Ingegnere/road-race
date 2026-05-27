@@ -17,6 +17,8 @@ const TREE_SPAWN_CHANCE := 0.6   # probability each check produces a tree
 const TREE_FRAME_COUNT := 9
 const TREE_FRAME_DURATION := 0.14  # seconds per frame (~7 fps)
 
+const GRASS_TILE_COUNT := 10
+
 var scroll_offset := 0.0
 var _world_scroll := 0.0
 var _car: Node2D
@@ -28,6 +30,7 @@ var _tree_dist_acc := 0.0
 var _tree_rng := RandomNumberGenerator.new()
 var _tree_frame := 0
 var _tree_frame_timer := 0.0
+var _grass_tiles: Array = []
 
 
 func _ready() -> void:
@@ -43,6 +46,9 @@ func _ready() -> void:
 		for _c in range(TILE_COLS):
 			row.append(rng.randi_range(0, 3) * (PI / 2.0))
 		_rotations.append(row)
+
+	for i in range(GRASS_TILE_COUNT):
+		_grass_tiles.append(_make_grass_tile(7770 + i * 173))
 
 
 func _process(delta: float) -> void:
@@ -81,11 +87,37 @@ func _spawn_tree() -> void:
 	_trees.append(Vector2(x, -TREE_HALF))
 
 
+func _make_grass_tile(seed: int) -> ImageTexture:
+	const SIZE := 64
+	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	var base := Color(0.18, 0.50, 0.20)
+	img.fill(base)
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed
+	for _i in range(55):
+		var bx := rng.randi_range(0, SIZE - 3)
+		var by := rng.randi_range(5, SIZE - 1)
+		var h := rng.randi_range(7, 14)
+		var lean := rng.randf_range(-0.10, 0.10)
+		var brightness := rng.randf_range(0.68, 1.38)
+		var bc := Color(
+			clampf(base.r * brightness, 0.0, 1.0),
+			clampf(base.g * brightness, 0.0, 1.0),
+			clampf(base.b * brightness, 0.0, 1.0)
+		)
+		for j in range(h):
+			var px: int = bx + int(lean * j)
+			var py: int = by - j
+			if px >= 0 and px < SIZE and py >= 0 and py < SIZE:
+				img.set_pixel(px, py, bc)
+	return ImageTexture.create_from_image(img)
+
+
 func _draw() -> void:
 	var size := get_viewport_rect().size
 	var half := TILE_SIZE * 0.5  # = 48; texture is 64px source drawn at 1.5x scale
 
-	# Grass background
+	# Grass background (base fill)
 	draw_rect(Rect2(0.0, 0.0, size.x, size.y), Color(0.18, 0.50, 0.20))
 
 	# Tiled asphalt
@@ -105,9 +137,36 @@ func _draw() -> void:
 			ty += TILE_SIZE
 		draw_set_transform(Vector2.ZERO)
 
-	# Redraw grass on both sides to clip tile spillover at road edges
-	draw_rect(Rect2(0.0, 0.0, ROAD_LEFT, size.y), Color(0.18, 0.50, 0.20))
-	draw_rect(Rect2(ROAD_LEFT + ROAD_WIDTH, 0.0, size.x - ROAD_LEFT - ROAD_WIDTH, size.y), Color(0.18, 0.50, 0.20))
+	# Grass tiles on both shoulders — drawn after asphalt so they cover any asphalt spill.
+	# Tiles are aligned to the road edges so they never spill onto the road.
+	if _grass_tiles.size() > 0:
+		var tile_start_y := fmod(_world_scroll, TILE_SIZE) - TILE_SIZE
+		var ty := tile_start_y
+		while ty < size.y:
+			var world_row := posmod(floori((ty - _world_scroll) / float(TILE_SIZE)), TILE_ROWS)
+
+			# Left shoulder: columns aligned right-to-left from ROAD_LEFT
+			var col_idx := 0
+			var tx := ROAD_LEFT - TILE_SIZE
+			while tx > -TILE_SIZE * 1.5:
+				var variant := (world_row * 7 + col_idx * 13) % GRASS_TILE_COUNT
+				draw_set_transform(Vector2(tx + half, ty + half), 0.0, Vector2(1.5, 1.5))
+				draw_texture(_grass_tiles[variant], Vector2(-32.0, -32.0))
+				col_idx += 1
+				tx -= TILE_SIZE
+
+			# Right shoulder: columns aligned left-to-right from ROAD_LEFT + ROAD_WIDTH
+			col_idx = 0
+			tx = ROAD_LEFT + ROAD_WIDTH
+			while tx < size.x:
+				var variant := (world_row * 11 + col_idx * 17) % GRASS_TILE_COUNT
+				draw_set_transform(Vector2(tx + half, ty + half), 0.0, Vector2(1.5, 1.5))
+				draw_texture(_grass_tiles[variant], Vector2(-32.0, -32.0))
+				col_idx += 1
+				tx += TILE_SIZE
+
+			ty += TILE_SIZE
+		draw_set_transform(Vector2.ZERO)
 
 	# Trees on grass shoulders (animated sprite sheet: 3x3 grid of 256x256 frames, drawn at 128x128)
 	if _tree_tex:
