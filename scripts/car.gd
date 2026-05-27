@@ -11,6 +11,8 @@ const CAR_HALF_WIDTH := 42.0
 
 var speed_kmh := MIN_SPEED_KMH
 
+var _tilt_deg: float = 0.0
+
 var _shadow_tex: Texture2D
 var _shadow_hw: float
 var _shadow_hh: float
@@ -34,6 +36,15 @@ func _process(delta: float) -> void:
 		position.x += LATERAL_SPEED * delta
 
 	position.x = clamp(position.x, ROAD_LEFT + CAR_HALF_WIDTH, ROAD_RIGHT - CAR_HALF_WIDTH)
+
+	var target_tilt: float = 0.0
+	if Input.is_action_pressed("ui_left"):
+		target_tilt = -5.0
+	elif Input.is_action_pressed("ui_right"):
+		target_tilt = 5.0
+	_tilt_deg = lerpf(_tilt_deg, target_tilt, delta * 12.0)
+	get_node("Sprite2D").rotation_degrees = _tilt_deg
+
 	queue_redraw()
 
 
