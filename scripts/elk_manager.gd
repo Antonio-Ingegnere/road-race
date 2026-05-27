@@ -27,11 +27,11 @@ const STAND_MAX := 1.4
 const EAT_MIN   := 0.6
 const EAT_MAX   := 1.2
 
-const JUMP_RAISE_TIME := 0.35
-const ON_ROAD_TIME    := 0.45
+const JUMP_RAISE_TIME := 0.18
+const ON_ROAD_TIME    := 0.90
 # Duration of each jump-sheet frame (seconds); must sum to JUMP_TOTAL_TIME
-const JUMP_FRAME_TIMES := [0.18, 0.22, 0.22, 0.18]
-const JUMP_TOTAL_TIME  := 0.80
+const JUMP_FRAME_TIMES := [0.09, 0.11, 0.11, 0.09]
+const JUMP_TOTAL_TIME  := 0.40
 
 const ELK_HIT_HW := 33.0
 const ELK_HIT_HH := 33.0
