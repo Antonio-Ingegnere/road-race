@@ -3,7 +3,7 @@ extends CanvasLayer
 const VP_W := 1920.0
 const VP_H := 1080.0
 const PANEL_W := 500.0
-const PANEL_H := 540.0
+const PANEL_H := 640.0
 
 const RESOLUTIONS := ["1280x720", "1920x1080", "2560x1440", "3840x2160"]
 
@@ -61,6 +61,8 @@ func _load_values() -> void:
 	_widgets["elk_enabled"].button_pressed  = bool(_cfg.get_value("elk",       "enabled",    true))
 	_set_slider(_widgets["elk_spawn"],      float(_cfg.get_value("elk",       "spawn_chance", 0.8)))
 	_set_slider(_widgets["elk_jump"],       float(_cfg.get_value("elk",       "jump_chance",  0.9)))
+	_widgets["shore_left"].selected  = int(_cfg.get_value("landscape", "left",  0))
+	_widgets["shore_right"].selected = int(_cfg.get_value("landscape", "right", 0))
 
 
 func _save_values() -> void:
@@ -72,6 +74,8 @@ func _save_values() -> void:
 	_cfg.set_value("elk",       "enabled",      _widgets["elk_enabled"].button_pressed)
 	_cfg.set_value("elk",       "spawn_chance", _widgets["elk_spawn"].value)
 	_cfg.set_value("elk",       "jump_chance",  _widgets["elk_jump"].value)
+	_cfg.set_value("landscape", "left",         _widgets["shore_left"].selected)
+	_cfg.set_value("landscape", "right",        _widgets["shore_right"].selected)
 	_cfg.save("res://config.cfg")
 
 
@@ -138,6 +142,13 @@ func _build_ui() -> void:
 										  func(v): return "%d%%" % int(v * 100))
 	_widgets["elk_jump"]    = _add_slider(vbox, "Jump chance",  0.0, 1.0, 0.05,
 										  func(v): return "%d%%" % int(v * 100))
+
+	vbox.add_child(_make_separator())
+
+	# ── Landscape ──
+	_add_section_label(vbox, "Landscape")
+	_widgets["shore_left"]  = _add_option_button(vbox, "Left shore",  ["Grass", "Seashore"])
+	_widgets["shore_right"] = _add_option_button(vbox, "Right shore", ["Grass", "Seashore"])
 
 	vbox.add_child(_make_separator())
 
