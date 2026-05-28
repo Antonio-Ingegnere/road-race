@@ -15,7 +15,7 @@ const LANE_COUNT := 3
 
 const FRAME_W   := 64
 const FRAME_H   := 64
-const ELK_SCALE := 1.5
+const ELK_SCALE := 2.25
 
 const SIDE_OFFSET_MIN := 3.75
 const SIDE_OFFSET_MAX := 15.0
@@ -33,12 +33,12 @@ const ON_ROAD_TIME    := 0.90
 const JUMP_FRAME_TIMES := [0.09, 0.11, 0.11, 0.09]
 const JUMP_TOTAL_TIME  := 0.40
 
-const ELK_HIT_HW := 33.0
-const ELK_HIT_HH := 33.0
+const ELK_HIT_HW := 49.5
+const ELK_HIT_HH := 49.5
 const CAR_VIS_HW  := 40.0
 const CAR_VIS_HH  := 64.0
 
-const SHADOW_RADIUS  := 21.0
+const SHADOW_RADIUS  := 31.5
 const JUMP_ARC_HEIGHT := 36.0  # px upward at the arc peak
 
 var _tex_base: Texture2D
@@ -83,6 +83,13 @@ func _process(delta: float) -> void:
 		_spawn_timer = 0.0
 		if randf() < _spawn_chance:
 			_spawn()
+
+	var any_airborne := false
+	for elk in _elks:
+		if elk["state"] in [STATE_JUMP_OUT, STATE_ON_ROAD, STATE_JUMP_BACK]:
+			any_airborne = true
+			break
+	z_index = 1 if any_airborne else 0
 
 	queue_redraw()
 
