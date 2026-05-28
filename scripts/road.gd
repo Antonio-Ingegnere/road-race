@@ -298,6 +298,8 @@ func _draw_seashore_left(size: Vector2) -> void:
 		wet.append(sl[i])
 	draw_polygon(wet, PackedColorArray([SEA_WET_SAND_COLOR]))
 
+	_draw_shore_deco(size, _shore_x_left, -1.0, 0)
+
 	for i in range(SEA_WAVE_COUNT):
 		var phase := fmod(float(i) / SEA_WAVE_COUNT + _sea_time * SEA_WAVE_SPEED, 1.0)
 		var wx    := wave_x + phase * SEA_WAVE_ZONE_W
@@ -346,6 +348,8 @@ func _draw_seashore_right(size: Vector2) -> void:
 		wet.append(sl[i])
 	draw_polygon(wet, PackedColorArray([SEA_WET_SAND_COLOR]))
 
+	_draw_shore_deco(size, _shore_x_right, 1.0, 999983)
+
 	for i in range(SEA_WAVE_COUNT):
 		var phase := fmod(float(i) / SEA_WAVE_COUNT + _sea_time * SEA_WAVE_SPEED, 1.0)
 		var wx    := wave_end - phase * SEA_WAVE_ZONE_W
@@ -353,6 +357,63 @@ func _draw_seashore_right(size: Vector2) -> void:
 		_draw_wave_line(size, wx,
 			Color(SEA_FOAM_COLOR.r, SEA_FOAM_COLOR.g, SEA_FOAM_COLOR.b, alpha),
 			_sea_time, float(i) * 1.618 + 10.0)
+
+
+func _draw_shore_deco(size: Vector2, shore_fn: Callable, toward_water: float, seed_base: int) -> void:
+	const SPACING    := 70.0
+	const ROCK_COLOR := Color(0.27, 0.23, 0.19)
+	const ROCK_SHINE := Color(0.42, 0.37, 0.32, 0.55)
+	const WEED_DARK  := Color(0.05, 0.20, 0.08, 0.90)
+	const WEED_MID   := Color(0.14, 0.36, 0.16, 0.85)
+
+	var rng      := RandomNumberGenerator.new()
+	var wy_start := -_world_scroll
+	var wy_end   := size.y - _world_scroll
+	var wy: float = ceil(wy_start / SPACING) * SPACING
+
+	while wy <= wy_end:
+		var sy       := wy + _world_scroll
+		var sx: float = shore_fn.call(sy)
+		rng.seed     = int(wy) * 7919 + seed_base
+
+		# Rocks: scattered around the shoreline into both sand and water
+		var rock_count := rng.randi_range(0, 2)
+		for _r in range(rock_count):
+			var dist := rng.randf_range(-38.0, 28.0)  # neg = into sand, pos = into water
+			var rx   := rng.randf_range(5.0, 12.0)
+			var ry   := rng.randf_range(3.5,  8.0)
+			var rot  := rng.randf_range(-1.3,  1.3)
+			var pos  := Vector2(sx + toward_water * dist, sy + rng.randf_range(-22.0, 22.0))
+			draw_set_transform(pos, rot, Vector2(rx, ry))
+			draw_circle(Vector2.ZERO, 1.0, ROCK_COLOR)
+			draw_set_transform(Vector2.ZERO)
+			var hi := pos + Vector2(-rx * 0.25, -ry * 0.30).rotated(rot)
+			draw_set_transform(hi, rot, Vector2(rx * 0.40, ry * 0.35))
+			draw_circle(Vector2.ZERO, 1.0, ROCK_SHINE)
+			draw_set_transform(Vector2.ZERO)
+
+		# Seaweed: curved blade patches in the shallow water
+		if rng.randf() < 0.45:
+			var dist   := rng.randf_range(25.0, 75.0)
+			var wpos   := Vector2(sx + toward_water * dist, sy + rng.randf_range(-14.0, 14.0))
+			var blades := rng.randi_range(5, 9)
+			for _b in range(blades):
+				var angle  := rng.randf_range(-PI, PI)
+				var length := rng.randf_range(14.0, 30.0)
+				var bend   := rng.randf_range(-0.50, 0.50)
+				var width  := rng.randf_range(1.8, 3.2)
+				var col    := WEED_DARK if rng.randf() < 0.55 else WEED_MID
+				var bx     := wpos.x + rng.randf_range(-5.0, 5.0)
+				var by     := wpos.y + rng.randf_range(-4.0, 4.0)
+				var pts    := PackedVector2Array()
+				for s in range(5):
+					var t := float(s) / 4.0
+					pts.append(Vector2(
+						bx + cos(angle + bend * t) * length * t,
+						by + sin(angle + bend * t) * length * t))
+				draw_polyline(pts, col, width, true)
+
+		wy += SPACING
 
 
 func _draw_wave_line(size: Vector2, base_x: float, color: Color, t: float, seed: float) -> void:
