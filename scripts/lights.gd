@@ -1,15 +1,10 @@
 extends Node2D
 
 const CAR_FRONT_OFFSET := 64.0
-const OBS_REAR_OFFSET  := 48.0
+const OBS_REAR_OFFSET  := 64.0
 
-const CONE_LENGTH  := 300.0
-const CONE_HW_NEAR := 32.0
-const CONE_HW_FAR  := 150.0
-
+const CONE_LENGTH      := 300.0
 const OBS_CONE_LENGTH  := 300.0
-const OBS_CONE_HW_NEAR := 32.0
-const OBS_CONE_HW_FAR  := 150.0
 
 var _car: Node2D
 var _obstacle_manager: Node2D
@@ -47,7 +42,6 @@ func _draw_headlights(car_pos: Vector2, night: float) -> void:
 	var far_y  := near_y - CONE_LENGTH
 	var bright := Color(1.00, 0.95, 0.70, night * 0.575)
 	var fade   := Color(1.00, 0.95, 0.70, 0.00)
-	# Left beam (inner right edge expanded 10% further right)
 	draw_polygon(
 		PackedVector2Array([
 			Vector2(car_pos.x - 32, near_y),
@@ -57,7 +51,6 @@ func _draw_headlights(car_pos: Vector2, night: float) -> void:
 		]),
 		PackedColorArray([bright, bright, fade, fade])
 	)
-	# Right beam (inner left edge expanded 10% further left)
 	draw_polygon(
 		PackedVector2Array([
 			Vector2(car_pos.x + 10,  near_y),
