@@ -21,6 +21,7 @@ const GRASS_TEX_SIZE := 512
 
 const LANDSCAPE_GRASS    := 0
 const LANDSCAPE_SEASHORE := 1
+const LANDSCAPE_DESERT   := 2
 
 const SEA_SAND_W         := 120.0
 const SEA_WAVE_ZONE_W    := 220.0
@@ -32,6 +33,15 @@ const SEA_MID_COLOR      := Color(0.10, 0.40, 0.62)
 const SEA_FOAM_COLOR     := Color(0.90, 0.95, 0.98)
 const SEA_SAND_COLOR     := Color(0.88, 0.78, 0.56)
 const SEA_WET_SAND_COLOR := Color(0.72, 0.64, 0.47)
+
+const DESERT_SAND_COLOR  := Color(0.90, 0.78, 0.50)
+const DESERT_LINE_COL    := Color(0.66, 0.46, 0.18, 0.42)
+const DESERT_SPOT_COL    := Color(0.76, 0.56, 0.26, 0.48)
+const DESERT_ROCK_COLOR  := Color(0.52, 0.36, 0.22)
+const DESERT_ROCK_SHINE  := Color(0.68, 0.52, 0.36, 0.55)
+const DESERT_SHRUB_DARK  := Color(0.12, 0.24, 0.08)
+const DESERT_SHRUB_LITE  := Color(0.28, 0.46, 0.18, 0.55)
+const DESERT_SHRUB_SHAD  := Color(0.10, 0.07, 0.03, 0.30)
 
 var scroll_offset := 0.0
 var _world_scroll := 0.0
@@ -45,6 +55,7 @@ var _tree_rng := RandomNumberGenerator.new()
 var _tree_frame := 0
 var _tree_frame_timer := 0.0
 var _grass_tex: ImageTexture
+var _desert_tex: ImageTexture
 
 var landscape_left  := LANDSCAPE_GRASS
 var landscape_right := LANDSCAPE_GRASS
@@ -65,7 +76,8 @@ func _ready() -> void:
 			row.append(rng.randi_range(0, 3) * (PI / 2.0))
 		_rotations.append(row)
 
-	_grass_tex = _make_grass_tex()
+	_grass_tex  = _make_grass_tex()
+	_desert_tex = _make_desert_tex()
 
 	var cfg := ConfigFile.new()
 	if cfg.load("res://config.cfg") == OK:
@@ -136,6 +148,22 @@ func _make_grass_tex() -> ImageTexture:
 	return ImageTexture.create_from_image(img)
 
 
+func _make_desert_tex() -> ImageTexture:
+	const SIZE := GRASS_TEX_SIZE
+	var img := Image.create(SIZE, SIZE, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0.90, 0.78, 0.50))
+	# Horizontal sand ripple lines — subtle wavy dark stripes every 7 px
+	for y in range(0, SIZE, 7):
+		var phase := float(y) * 0.153
+		for x in range(SIZE):
+			var wy2: int = posmod(y + int(round(
+				2.1 * sin(float(x) * 0.037 + phase) +
+				1.0 * sin(float(x) * 0.081 + phase * 0.65))), SIZE)
+			var c := img.get_pixel(x, wy2)
+			img.set_pixel(x, wy2, c.darkened(0.065))
+	return ImageTexture.create_from_image(img)
+
+
 func _draw() -> void:
 	var size := get_viewport_rect().size
 	var half := TILE_SIZE * 0.5  # = 48; texture is 64px source drawn at 1.5x scale
@@ -175,8 +203,12 @@ func _draw() -> void:
 		draw_set_transform(Vector2.ZERO)
 	if landscape_left == LANDSCAPE_SEASHORE:
 		_draw_seashore_left(size)
+	elif landscape_left == LANDSCAPE_DESERT:
+		_draw_desert_left(size)
 	if landscape_right == LANDSCAPE_SEASHORE:
 		_draw_seashore_right(size)
+	elif landscape_right == LANDSCAPE_DESERT:
+		_draw_desert_right(size)
 
 	# Trees on grass shoulders (animated sprite sheet: 3x3 grid of 256x256 frames, drawn at 128x128)
 	if _tree_tex:
@@ -185,9 +217,9 @@ func _draw() -> void:
 		var src := Rect2(frame_col * TREE_FRAME_SIZE, frame_row * TREE_FRAME_SIZE, TREE_FRAME_SIZE, TREE_FRAME_SIZE)
 		for p in _trees:
 			var on_left := p.x < ROAD_LEFT
-			if on_left and landscape_left == LANDSCAPE_SEASHORE:
+			if on_left and landscape_left != LANDSCAPE_GRASS:
 				continue
-			if not on_left and landscape_right == LANDSCAPE_SEASHORE:
+			if not on_left and landscape_right != LANDSCAPE_GRASS:
 				continue
 			draw_texture_rect_region(_tree_tex, Rect2(p.x - TREE_HALF, p.y - TREE_HALF, TREE_HALF * 2, TREE_HALF * 2), src)
 
@@ -414,6 +446,156 @@ func _draw_shore_deco(size: Vector2, shore_fn: Callable, toward_water: float, se
 				draw_polyline(pts, col, width, true)
 
 		wy += SPACING
+
+
+func _draw_desert_left(size: Vector2) -> void:
+	_draw_desert_base(0.0, ROAD_LEFT, size)
+	_draw_desert_ridgelines(0.0, ROAD_LEFT, size)
+	_draw_desert_spots(0.0, ROAD_LEFT, size)
+	_draw_desert_deco(size, 0.0, ROAD_LEFT, 0)
+
+
+func _draw_desert_right(size: Vector2) -> void:
+	var x0 := ROAD_LEFT + ROAD_WIDTH
+	_draw_desert_base(x0, size.x, size)
+	_draw_desert_ridgelines(x0, size.x, size)
+	_draw_desert_spots(x0, size.x, size)
+	_draw_desert_deco(size, x0, size.x, 112237)
+
+
+func _draw_desert_base(x0: float, x1: float, size: Vector2) -> void:
+	if _desert_tex:
+		var scale  := 1.5
+		var tsrc   := float(GRASS_TEX_SIZE)
+		var sy     := fmod(_world_scroll / scale, tsrc) - tsrc
+		var draw_h := size.y / scale + tsrc
+		draw_set_transform(Vector2.ZERO, 0.0, Vector2(scale, scale))
+		draw_texture_rect(_desert_tex, Rect2(x0 / scale, sy, (x1 - x0) / scale, draw_h), true)
+		draw_set_transform(Vector2.ZERO)
+	else:
+		draw_rect(Rect2(x0, 0.0, x1 - x0, size.y), DESERT_SAND_COLOR)
+
+
+func _draw_desert_ridgelines(x0: float, x1: float, size: Vector2) -> void:
+	var zone_w  := x1 - x0
+	var n_lines: int = max(2, int(zone_w / 76.0))
+	for i in range(n_lines):
+		var base_x := x0 + (float(i) + 0.5) * (zone_w / float(n_lines))
+		var seed   := float(i) * 1337.0 + x0 * 0.11
+		var pts    := PackedVector2Array()
+		var y      := 0.0
+		while y <= size.y:
+			var wy := y - _world_scroll
+			var x  := base_x \
+					 + 15.0 * sin(wy * 0.0044 + seed * 2.09) \
+					 +  8.0 * sin(wy * 0.0092 + seed * 1.37) \
+					 +  4.0 * sin(wy * 0.0191 + seed * 0.83)
+			pts.append(Vector2(x, y))
+			y += 9.0
+		if pts.size() >= 2:
+			draw_polyline(pts, DESERT_LINE_COL, 2.0, true)
+
+
+func _draw_desert_spots(x0: float, x1: float, size: Vector2) -> void:
+	const SPACING := 52.0
+
+	var rng      := RandomNumberGenerator.new()
+	var wy_start := -_world_scroll
+	var wy_end   := size.y - _world_scroll
+	var wy: float = ceil(wy_start / SPACING) * SPACING
+
+	while wy <= wy_end:
+		rng.seed = int(wy) * 2311 + int(x0)
+		var sy := wy + _world_scroll
+		var count := rng.randi_range(2, 5)
+		for _s in range(count):
+			var sx := rng.randf_range(x0 + 15.0, x1 - 15.0)
+			var r  := rng.randf_range(3.5, 8.0)
+			draw_set_transform(Vector2(sx, sy + rng.randf_range(-18.0, 18.0)), 0.0, Vector2(r, r * 0.68))
+			draw_circle(Vector2.ZERO, 1.0, DESERT_SPOT_COL)
+			draw_set_transform(Vector2.ZERO)
+		wy += SPACING
+
+
+func _draw_desert_deco(size: Vector2, x0: float, x1: float, seed_base: int) -> void:
+	const SPACING := 95.0
+	const MARGIN  := 25.0
+
+	var rng      := RandomNumberGenerator.new()
+	var wy_start := -_world_scroll
+	var wy_end   := size.y - _world_scroll
+	var wy: float = ceil(wy_start / SPACING) * SPACING
+
+	while wy <= wy_end:
+		var sy := wy + _world_scroll
+		rng.seed = int(wy) * 6547 + seed_base
+
+		var rock_count := rng.randi_range(0, 2)
+		for _r in range(rock_count):
+			var rx  := rng.randf_range(7.0, 18.0)
+			var ry  := rng.randf_range(5.0, 13.0)
+			var rot := rng.randf_range(-0.8, 0.8)
+			var px  := rng.randf_range(x0 + MARGIN, x1 - MARGIN)
+			var py  := sy + rng.randf_range(-30.0, 30.0)
+			var pos := Vector2(px, py)
+			draw_set_transform(pos, rot, Vector2(rx, ry))
+			draw_circle(Vector2.ZERO, 1.0, DESERT_ROCK_COLOR)
+			draw_set_transform(Vector2.ZERO)
+			var hi := pos + Vector2(-rx * 0.25, -ry * 0.30).rotated(rot)
+			draw_set_transform(hi, rot, Vector2(rx * 0.40, ry * 0.35))
+			draw_circle(Vector2.ZERO, 1.0, DESERT_ROCK_SHINE)
+			draw_set_transform(Vector2.ZERO)
+
+		if rng.randf() < 0.55:
+			var cx := rng.randf_range(x0 + MARGIN, x1 - MARGIN)
+			var cy := sy + rng.randf_range(-20.0, 20.0)
+			_draw_desert_shrub(Vector2(cx, cy), rng)
+
+		wy += SPACING
+
+
+func _draw_desert_shrub(pos: Vector2, rng: RandomNumberGenerator) -> void:
+	var s      := rng.randf_range(0.65, 1.40)
+	var base_r := rng.randf_range(12.0, 22.0) * s
+
+	# Ground shadow — elongated teardrop to lower-right
+	var shad_len := base_r * rng.randf_range(1.5, 2.3)
+	var shad_pos := pos + Vector2(0.70, 0.35) * shad_len * 0.55
+	var shad_rot := atan2(0.35, 0.70)
+	draw_set_transform(shad_pos, shad_rot, Vector2(shad_len * 0.48, base_r * 0.68))
+	draw_circle(Vector2.ZERO, 1.0, DESERT_SHRUB_SHAD)
+	draw_set_transform(Vector2.ZERO)
+
+	# Main body
+	draw_set_transform(pos, 0.0, Vector2(base_r, base_r * 0.88))
+	draw_circle(Vector2.ZERO, 1.0, DESERT_SHRUB_DARK)
+	draw_set_transform(Vector2.ZERO)
+
+	# Satellite blobs give an irregular, bushy silhouette
+	var blob_count := rng.randi_range(4, 7)
+	for _b in range(blob_count):
+		var angle := rng.randf_range(0.0, TAU)
+		var dist  := base_r * rng.randf_range(0.52, 0.86)
+		var br    := base_r * rng.randf_range(0.30, 0.55)
+		var bp    := pos + Vector2(cos(angle) * dist, sin(angle) * dist)
+		draw_set_transform(bp, 0.0, Vector2(br, br * 0.88))
+		draw_circle(Vector2.ZERO, 1.0, DESERT_SHRUB_DARK)
+		draw_set_transform(Vector2.ZERO)
+
+	# Spiky radiating spines (illustration style)
+	var spine_count := rng.randi_range(8, 14)
+	for sp in range(spine_count):
+		var angle    := float(sp) / float(spine_count) * TAU + rng.randf_range(-0.18, 0.18)
+		var sp_len   := base_r * rng.randf_range(0.90, 1.30)
+		var sp_start := pos + Vector2(cos(angle) * base_r * 0.25, sin(angle) * base_r * 0.25)
+		var sp_end   := pos + Vector2(cos(angle) * sp_len, sin(angle) * sp_len)
+		draw_line(sp_start, sp_end, DESERT_SHRUB_DARK, 1.5, true)
+
+	# Highlight patch (upper-left, lit side)
+	var hi := pos + Vector2(-base_r * 0.22, -base_r * 0.26)
+	draw_set_transform(hi, 0.0, Vector2(base_r * 0.40, base_r * 0.30))
+	draw_circle(Vector2.ZERO, 1.0, DESERT_SHRUB_LITE)
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_wave_line(size: Vector2, base_x: float, color: Color, t: float, seed: float) -> void:

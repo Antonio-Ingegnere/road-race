@@ -147,8 +147,8 @@ func _build_ui() -> void:
 
 	# ── Landscape ──
 	_add_section_label(vbox, "Landscape")
-	_widgets["shore_left"]  = _add_option_button(vbox, "Left shore",  ["Grass", "Seashore"])
-	_widgets["shore_right"] = _add_option_button(vbox, "Right shore", ["Grass", "Seashore"])
+	_widgets["shore_left"]  = _add_option_button(vbox, "Left shore",  ["Grass", "Seashore", "Desert"])
+	_widgets["shore_right"] = _add_option_button(vbox, "Right shore", ["Grass", "Seashore", "Desert"])
 
 	vbox.add_child(_make_separator())
 
