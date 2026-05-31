@@ -50,6 +50,7 @@ func _on_hit() -> void:
 		$Car.set_process(false)
 		$ObstacleManager.stop()
 		$ElkManager.set_process(false)
+		$CatManager.set_process(false)
 		$GameOverlay.visible = true
 	else:
 		_blink_timer = BLINK_DURATION

@@ -11,6 +11,7 @@
 [ext_resource type="Script" uid="uid://b4duri7rxmfae" path="res://scripts/puddle_manager.gd" id="9_puddlescr"]
 [ext_resource type="Script" uid="uid://b2voxne02v30w" path="res://scripts/elk_manager.gd" id="10_elkscr"]
 [ext_resource type="Script" uid="uid://dtxqg0hr8vgp" path="res://scripts/settings_menu.gd" id="11_settingsscr"]
+[ext_resource type="Script" uid="uid://b3c4tm4n4g5r" path="res://scripts/cat_manager.gd" id="12_catscr"]
 
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")
@@ -23,6 +24,9 @@ script = ExtResource("9_puddlescr")
 
 [node name="ElkManager" type="Node2D" parent="." unique_id=999111000]
 script = ExtResource("10_elkscr")
+
+[node name="CatManager" type="Node2D" parent="." unique_id=222444666]
+script = ExtResource("12_catscr")
 
 [node name="ObstacleManager" type="Node2D" parent="." unique_id=1825455420]
 script = ExtResource("3_obsscr")
