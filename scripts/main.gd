@@ -51,7 +51,7 @@ func _on_cat_hit() -> void:
 		return
 	_police_active = true
 	$ObstacleManager.start_police_mode()
-	$ElkManager.set_process(false)
+	$ElkManager.stop_spawning()
 	$CatManager.stop_spawning()
 	$PoliceManager.start_chase()
 
