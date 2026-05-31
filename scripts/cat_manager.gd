@@ -1,5 +1,7 @@
 extends Node2D
 
+signal cat_hit_car
+
 const STATE_SITTING  := 0
 const STATE_RUNNING  := 1
 const STATE_BLINKING := 2
@@ -21,12 +23,15 @@ const WALKING_FPS    := 10.0
 const SIDE_OFFSET_MIN := 10.0
 const SIDE_OFFSET_MAX := 25.0
 
-const CAT_RUN_SPEED      := 220.0
-const BLINK_SPEED_MUL    := 2.5
-const SPAWN_INTERVAL := 5.5
-const RUN_CHANCE     := 0.80
-const BLINK_DURATION := 3.0
-const BLINK_HALF     := 0.12
+const CAT_RUN_SPEED   := 220.0
+const BLINK_SPEED_MUL := 2.5
+const SPAWN_INTERVAL  := 5.5
+const BLINK_DURATION  := 3.0
+const BLINK_HALF      := 0.12
+
+# Cat bolts when the player car is this many px below it (varied per cat)
+const TRIGGER_MIN := 60.0
+const TRIGGER_MAX := 200.0
 
 # Collision half-extents
 const CAT_HIT_HW := 22.0
@@ -34,11 +39,12 @@ const CAT_HIT_HH := 22.0
 const CAR_VIS_HW := 40.0
 const CAR_VIS_HH := 64.0
 
-var _tex_sit:  Texture2D
-var _tex_walk: Texture2D
-var _cats: Array = []
-var _spawn_timer := 0.0
-var _car: Node2D
+var _tex_sit:      Texture2D
+var _tex_walk:     Texture2D
+var _cats:         Array = []
+var _spawn_timer:  float  = 0.0
+var _stop_spawning: bool  = false
+var _car:          Node2D
 
 
 func _ready() -> void:
@@ -60,10 +66,11 @@ func _process(delta: float) -> void:
 		return c["pos"].y < screen_h + half_h and not c["despawn"]
 	)
 
-	_spawn_timer += delta
-	if _spawn_timer >= SPAWN_INTERVAL:
-		_spawn_timer = 0.0
-		_spawn()
+	if not _stop_spawning:
+		_spawn_timer += delta
+		if _spawn_timer >= SPAWN_INTERVAL:
+			_spawn_timer = 0.0
+			_spawn()
 
 	queue_redraw()
 
@@ -75,14 +82,12 @@ func _update_cat(cat: Dictionary, delta: float) -> void:
 			if cat["anim_timer"] >= 1.0 / SITTING_FPS:
 				cat["anim_timer"] -= 1.0 / SITTING_FPS
 				cat["frame"] = (cat["frame"] + 1) % SITTING_FRAMES
-			cat["sit_timer"] -= delta
-			if cat["sit_timer"] <= 0.0:
-				if randf() < RUN_CHANCE:
-					cat["state"]      = STATE_RUNNING
-					cat["frame"]      = 0
-					cat["anim_timer"] = 0.0
-				else:
-					cat["sit_timer"] = 999.0  # won't run, scrolls off naturally
+			# Bolt when the player car enters the trigger window below the cat
+			var dy: float = _car.position.y - cat["pos"].y
+			if dy >= 0.0 and dy <= cat["trigger_dist"]:
+				cat["state"]      = STATE_RUNNING
+				cat["frame"]      = 0
+				cat["anim_timer"] = 0.0
 
 		STATE_RUNNING:
 			cat["anim_timer"] += delta
@@ -120,6 +125,14 @@ func _update_cat(cat: Dictionary, delta: float) -> void:
 				cat["despawn"] = true
 
 
+func stop_spawning() -> void:
+	_stop_spawning = true
+
+
+func start_spawning() -> void:
+	_stop_spawning = false
+
+
 func _check_collision(cat: Dictionary) -> void:
 	var cp: Vector2  = _car.position
 	var op: Vector2  = cat["pos"]
@@ -127,6 +140,7 @@ func _check_collision(cat: Dictionary) -> void:
 			and abs(cp.y - op.y) < CAR_VIS_HH + CAT_HIT_HH:
 		cat["state"]       = STATE_BLINKING
 		cat["blink_timer"] = BLINK_DURATION
+		cat_hit_car.emit()
 
 
 func _spawn() -> void:
@@ -136,15 +150,15 @@ func _spawn() -> void:
 	var x: float      = ROAD_RIGHT + offset + hw if right else ROAD_LEFT - offset - hw
 	var run_dir: float = -1.0 if right else 1.0
 	_cats.append({
-		"pos":        Vector2(x, -SIT_FRAME_H * CAT_SCALE * 0.5),
-		"right":      right,
-		"run_dir":    run_dir,
-		"state":      STATE_SITTING,
-		"frame":      0,
-		"anim_timer": 0.0,
-		"sit_timer":  randf_range(0.8, 2.5),
-		"blink_timer": 0.0,
-		"despawn":    false,
+		"pos":          Vector2(x, -SIT_FRAME_H * CAT_SCALE * 0.5),
+		"right":        right,
+		"run_dir":      run_dir,
+		"state":        STATE_SITTING,
+		"frame":        0,
+		"anim_timer":   0.0,
+		"trigger_dist": randf_range(TRIGGER_MIN, TRIGGER_MAX),
+		"blink_timer":  0.0,
+		"despawn":      false,
 	})
 
 

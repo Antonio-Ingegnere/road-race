@@ -28,6 +28,8 @@ var _spawn_interval := 1.8
 var _elapsed := 0.0
 var _invincible_timer := 0.0
 var _car: Node2D
+var _police_mode := false
+var _escape_vel  := 0.0
 
 signal hit_detected
 
@@ -41,26 +43,38 @@ func _ready() -> void:
 		_tex_half_h.append(tex.get_height() * 0.5)
 
 
+func start_police_mode() -> void:
+	_police_mode = true
+
+
+func stop_police_mode() -> void:
+	_police_mode = false
+	_escape_vel  = 0.0
+
+
 func _process(delta: float) -> void:
 	_elapsed += delta
-	_spawn_interval = max(0.7, 1.8 - _elapsed * 0.025)
 
-	_spawn_timer += delta
-	if _spawn_timer >= _spawn_interval:
-		_spawn_timer = 0.0
-		_spawn()
+	if not _police_mode:
+		_spawn_interval = max(0.7, 1.8 - _elapsed * 0.025)
+		_spawn_timer += delta
+		if _spawn_timer >= _spawn_interval:
+			_spawn_timer = 0.0
+			_spawn()
 
 	var screen_h := get_viewport_rect().size.y
 	var obs_scroll: float = (_car.speed_kmh - OBS_SPEED_KMH) * _car.KMH_TO_PXS * delta
+	if _police_mode:
+		_escape_vel = minf(_escape_vel + 25.0 * delta, 350.0)
 	for o in _obstacles:
-		o["pos"] = o["pos"] + Vector2(0.0, obs_scroll)
+		o["pos"] = o["pos"] + Vector2(0.0, obs_scroll + _escape_vel * delta)
 	# Extended cull: keep alive until front lights (48 rear offset + 225 cone) fade off screen
 	var cull_y: float = OBS_TEX_SIZE * OBS_SCALE * 0.5 + 273.0
 	_obstacles = _obstacles.filter(func(o) -> bool: return o["pos"].y < screen_h + cull_y)
 
 	if _invincible_timer > 0.0:
 		_invincible_timer -= delta
-	else:
+	elif not _police_mode:
 		var cp := _car.position
 		for o in _obstacles:
 			var t: int = o["type"]

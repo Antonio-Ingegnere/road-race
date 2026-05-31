@@ -12,6 +12,7 @@
 [ext_resource type="Script" uid="uid://b2voxne02v30w" path="res://scripts/elk_manager.gd" id="10_elkscr"]
 [ext_resource type="Script" uid="uid://dtxqg0hr8vgp" path="res://scripts/settings_menu.gd" id="11_settingsscr"]
 [ext_resource type="Script" uid="uid://b3c4tm4n4g5r" path="res://scripts/cat_manager.gd" id="12_catscr"]
+[ext_resource type="Script" uid="uid://p0l1cem4n5cr" path="res://scripts/police_manager.gd" id="13_policescr"]
 
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")
@@ -30,6 +31,9 @@ script = ExtResource("12_catscr")
 
 [node name="ObstacleManager" type="Node2D" parent="." unique_id=1825455420]
 script = ExtResource("3_obsscr")
+
+[node name="PoliceManager" type="Node2D" parent="." unique_id=333555777]
+script = ExtResource("13_policescr")
 
 [node name="Car" type="Node2D" parent="." unique_id=1857059141]
 position = Vector2(960, 972)

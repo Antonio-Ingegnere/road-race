@@ -44,7 +44,8 @@ const JUMP_ARC_HEIGHT := 36.0  # px upward at the arc peak
 var _tex_base: Texture2D
 var _tex_jump: Texture2D
 var _elks: Array = []
-var _spawn_timer := 0.0
+var _spawn_timer  := 0.0
+var _stop_spawning := false
 var _car: Node2D
 var _obstacle_mgr: Node
 var _spawn_chance := 0.8
@@ -78,11 +79,12 @@ func _process(delta: float) -> void:
 		func(e) -> bool: return e["pos"].y < screen_h + FRAME_H * ELK_SCALE * 0.5
 	)
 
-	_spawn_timer += delta
-	if _spawn_timer >= SPAWN_INTERVAL:
-		_spawn_timer = 0.0
-		if randf() < _spawn_chance:
-			_spawn()
+	if not _stop_spawning:
+		_spawn_timer += delta
+		if _spawn_timer >= SPAWN_INTERVAL:
+			_spawn_timer = 0.0
+			if randf() < _spawn_chance:
+				_spawn()
 
 	var any_airborne := false
 	for elk in _elks:
@@ -92,6 +94,14 @@ func _process(delta: float) -> void:
 	z_index = 1 if any_airborne else 0
 
 	queue_redraw()
+
+
+func stop_spawning() -> void:
+	_stop_spawning = true
+
+
+func start_spawning() -> void:
+	_stop_spawning = false
 
 
 # ── State machine ──────────────────────────────────────────────────────────────

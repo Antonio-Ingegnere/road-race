@@ -5,13 +5,17 @@ const BLINK_DURATION := 2.0
 const BLINK_HALF_PERIOD := 0.1  # visible/hidden each for 0.1s → 5 Hz blink
 
 var _lives := MAX_LIVES
-var _blink_timer := 0.0
+var _blink_timer    := 0.0
+var _police_active  := false
 
 
 func _ready() -> void:
 	_apply_resolution.call_deferred()
 	$ObstacleManager.hit_detected.connect(_on_hit)
 	$ElkManager.elk_hit_car.connect(_on_hit)
+	$CatManager.cat_hit_car.connect(_on_cat_hit)
+	$PoliceManager.chase_ended.connect(_on_chase_ended)
+	$PoliceManager.bullet_hit_car.connect(_on_hit)
 	_update_lives()
 
 
@@ -42,6 +46,24 @@ func _process(delta: float) -> void:
 			$Car/Sprite2D.visible = true
 
 
+func _on_cat_hit() -> void:
+	if _police_active:
+		return
+	_police_active = true
+	$ObstacleManager.start_police_mode()
+	$ElkManager.set_process(false)
+	$CatManager.stop_spawning()
+	$PoliceManager.start_chase()
+
+
+func _on_chase_ended() -> void:
+	_police_active = false
+	$ObstacleManager.stop_police_mode()
+	$ElkManager.set_process(true)
+	$ElkManager.start_spawning()
+	$CatManager.start_spawning()
+
+
 func _on_hit() -> void:
 	_lives -= 1
 	_update_lives()
@@ -51,6 +73,7 @@ func _on_hit() -> void:
 		$ObstacleManager.stop()
 		$ElkManager.set_process(false)
 		$CatManager.set_process(false)
+		$PoliceManager.set_process(false)
 		$GameOverlay.visible = true
 	else:
 		_blink_timer = BLINK_DURATION
