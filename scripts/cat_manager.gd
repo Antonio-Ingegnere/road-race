@@ -23,15 +23,15 @@ const WALKING_FPS    := 10.0
 const SIDE_OFFSET_MIN := 10.0
 const SIDE_OFFSET_MAX := 25.0
 
-const CAT_RUN_SPEED   := 220.0
+const CAT_RUN_SPEED   := 260.0
 const BLINK_SPEED_MUL := 2.5
 const SPAWN_INTERVAL  := 5.5
 const BLINK_DURATION  := 3.0
 const BLINK_HALF      := 0.12
 
 # Cat bolts when the player car is this many px below it (varied per cat)
-const TRIGGER_MIN := 60.0
-const TRIGGER_MAX := 200.0
+const TRIGGER_MIN := 300.0
+const TRIGGER_MAX := 550.0
 
 # Collision half-extents
 const CAT_HIT_HW := 22.0
@@ -95,16 +95,13 @@ func _update_cat(cat: Dictionary, delta: float) -> void:
 				cat["anim_timer"] -= 1.0 / WALKING_FPS
 				cat["frame"] = (cat["frame"] + 1) % WALKING_FRAMES
 
-			cat["pos"].x += cat["run_dir"] * CAT_RUN_SPEED * delta
+			var dx: float = _car.position.x - cat["pos"].x
+			if abs(dx) > 1.0:
+				cat["run_dir"] = signf(dx)
+				cat["pos"].x += cat["run_dir"] * CAT_RUN_SPEED * delta
 
 			if _car.is_processing():
 				_check_collision(cat)
-
-			var hw: float = WALK_FRAME_W * CAT_SCALE * 0.5
-			if cat["run_dir"] > 0 and cat["pos"].x > ROAD_RIGHT + SIDE_OFFSET_MAX + hw:
-				cat["despawn"] = true
-			elif cat["run_dir"] < 0 and cat["pos"].x < ROAD_LEFT - SIDE_OFFSET_MAX - hw:
-				cat["despawn"] = true
 
 		STATE_BLINKING:
 			cat["anim_timer"] += delta
