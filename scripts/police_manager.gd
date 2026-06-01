@@ -29,8 +29,8 @@ const REPOSITION_TIME   := 0.5   # seconds for the step-down animation
 const SHOT_COUNT   := 3
 const SHOT_INTERVAL:= 1.0
 
-const BULLET_W     := 12.0
-const BULLET_H     := 50.0
+const BULLET_W     := 6.0
+const BULLET_H     := 25.0
 const BULLET_SPEED := 550.0   # px/s downward toward player
 
 const BLINK_HALF   := 0.15
@@ -158,7 +158,7 @@ func _check_body_collision() -> void:
 
 
 func _fire_bullet() -> void:
-	_bullets.append({"pos": _pos + Vector2(30.0, POLICE_HH * 0.6), "alive": true})
+	_bullets.append({"pos": _pos + Vector2(-42.0, 12.0), "alive": true})
 
 
 func _update_bullets(delta: float) -> void:
@@ -195,6 +195,13 @@ func _draw() -> void:
 	var hh: float = FRAME_H * 0.5
 	var fr: int   = 1 if _state == STATE_SHOOTING else 0
 
+	draw_set_transform(_pos + Vector2(8.0, 10.0), 0.0, Vector2(POLICE_SCALE, POLICE_SCALE))
+	draw_texture_rect_region(
+		_tex,
+		Rect2(-hw, -hh, FRAME_W, FRAME_H),
+		Rect2(fr * FRAME_W, 0, FRAME_W, FRAME_H),
+		Color(0.0, 0.0, 0.0, 0.40)
+	)
 	draw_set_transform(_pos, 0.0, Vector2(POLICE_SCALE, POLICE_SCALE))
 	draw_texture_rect_region(
 		_tex,
@@ -204,10 +211,23 @@ func _draw() -> void:
 	draw_set_transform(Vector2.ZERO)
 
 	# Bullets travel downward toward player
-	var bullet_col := Color(1.0, 0.95, 0.25)
+	var tip_h: float = 8.0
 	for b in _bullets:
 		var bp: Vector2 = b["pos"]
-		draw_rect(Rect2(bp.x - BULLET_W * 0.5, bp.y, BULLET_W, BULLET_H), bullet_col)
+		var bx: float   = bp.x
+		var by: float   = bp.y
+		var bhw: float  = BULLET_W * 0.5
+		# Brass casing body
+		draw_rect(Rect2(bx - bhw, by, BULLET_W, BULLET_H - tip_h), Color(0.85, 0.65, 0.15))
+		# Pointed nose (triangle pointing downward — direction of travel)
+		draw_colored_polygon(
+			PackedVector2Array([
+				Vector2(bx - bhw, by + BULLET_H - tip_h),
+				Vector2(bx + bhw, by + BULLET_H - tip_h),
+				Vector2(bx,       by + BULLET_H),
+			]),
+			Color(1.0, 0.9, 0.3)
+		)
 
 	# Red / blue lights alternate every BLINK_HALF seconds
 	var red_on: bool  = fmod(_blink_phase, BLINK_HALF * 2.0) < BLINK_HALF
