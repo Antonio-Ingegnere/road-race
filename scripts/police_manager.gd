@@ -24,7 +24,7 @@ const STEP_SPEED   := 240.0  # px/s for the step-down animation
 const LATERAL_SPEED:= 360.0  # px/s horizontal repositioning
 
 const HOLD_WAIT         := 3.0
-const POST_SHOOT_WAIT   := 1.0   # pause between last shot and repositioning
+const POST_SHOOT_WAIT   := 1.5   # pause between last shot and repositioning
 const REPOSITION_TIME   := 0.5   # seconds for the step-down animation
 const SHOT_COUNT   := 3
 const SHOT_INTERVAL:= 0.5
