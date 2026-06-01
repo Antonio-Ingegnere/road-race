@@ -20,14 +20,14 @@ const POLICE_HH    := 64.0   # FRAME_H * POLICE_SCALE * 0.5
 
 # Step is 5 % of the visible road ahead of the player each cycle
 const STEP_FRAC    := 0.05
-const STEP_SPEED   := 120.0  # px/s for the step-down animation
-const LATERAL_SPEED:= 180.0  # px/s horizontal repositioning
+const STEP_SPEED   := 240.0  # px/s for the step-down animation
+const LATERAL_SPEED:= 360.0  # px/s horizontal repositioning
 
 const HOLD_WAIT         := 3.0
 const POST_SHOOT_WAIT   := 1.0   # pause between last shot and repositioning
 const REPOSITION_TIME   := 0.5   # seconds for the step-down animation
 const SHOT_COUNT   := 3
-const SHOT_INTERVAL:= 1.0
+const SHOT_INTERVAL:= 0.5
 
 const BULLET_W     := 6.0
 const BULLET_H     := 25.0
