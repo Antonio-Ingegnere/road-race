@@ -34,7 +34,8 @@ const BULLET_H     := 25.0
 const BULLET_SPEED := 550.0   # px/s downward toward player
 
 const BLINK_HALF   := 0.15
-const LIGHT_R      := 5.0
+const LIGHT_RED_RECT := Rect2(-16.0, -12.0, 10.0, 10.0)
+const LIGHT_BLU_RECT := Rect2(  6.0, -12.0, 10.0, 10.0)
 
 const POLICE_SPEED_KMH  := 200.0  # police can't exceed this; player outruns at higher speed
 const KMH_TO_PXS        := 7.5
@@ -42,11 +43,6 @@ const CAR_HIT_HW        := 40.0   # player car collision half-width
 const CAR_HIT_HH        := 64.0   # player car collision half-height
 const BULLET_INVINCIBLE := 1.5    # seconds of invincibility after a bullet hit
 
-# Light offsets: sprite px (24,26),(28,30) red; (35,26),(39,30) blue → ×2 scale
-const RED_OFF1 := Vector2(-16.0, -12.0)
-const RED_OFF2 := Vector2( -8.0,  -4.0)
-const BLU_OFF1 := Vector2(  6.0, -12.0)
-const BLU_OFF2 := Vector2( 14.0,  -4.0)
 
 var _car:         Node2D
 var _tex:         Texture2D
@@ -230,10 +226,8 @@ func _draw() -> void:
 		)
 
 	# Red / blue lights alternate every BLINK_HALF seconds
-	var red_on: bool  = fmod(_blink_phase, BLINK_HALF * 2.0) < BLINK_HALF
-	var red_col  := Color(1.0, 0.08, 0.05, 1.0) if red_on     else Color(0.25, 0.0, 0.0, 0.5)
-	var blue_col := Color(0.15, 0.2,  1.0, 1.0)  if not red_on else Color(0.0,  0.0, 0.25, 0.5)
-	draw_circle(_pos + RED_OFF1, LIGHT_R, red_col)
-	draw_circle(_pos + RED_OFF2, LIGHT_R, red_col)
-	draw_circle(_pos + BLU_OFF1, LIGHT_R, blue_col)
-	draw_circle(_pos + BLU_OFF2, LIGHT_R, blue_col)
+	var red_on: bool = fmod(_blink_phase, BLINK_HALF * 2.0) < BLINK_HALF
+	var red_col  := Color(1.0, 0.05, 0.05, 1.0) if red_on     else Color(0.15, 0.0, 0.0, 0.6)
+	var blue_col := Color(0.1,  0.2,  1.0, 1.0) if not red_on else Color(0.0,  0.0, 0.15, 0.6)
+	draw_rect(Rect2(_pos + LIGHT_RED_RECT.position, LIGHT_RED_RECT.size), red_col)
+	draw_rect(Rect2(_pos + LIGHT_BLU_RECT.position, LIGHT_BLU_RECT.size), blue_col)
