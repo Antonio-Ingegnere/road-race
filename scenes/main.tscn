@@ -14,6 +14,7 @@
 [ext_resource type="Script" uid="uid://bcekgfmeohlkj" path="res://scripts/cat_manager.gd" id="12_catscr"]
 [ext_resource type="Script" uid="uid://dhu225c7q1ijv" path="res://scripts/police_manager.gd" id="13_policescr"]
 [ext_resource type="Script" path="res://scripts/mermaid_manager.gd" id="14_mermaidscr"]
+[ext_resource type="Script" path="res://scripts/world_layer.gd" id="15_worldlayerscr"]
 
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")
@@ -26,6 +27,9 @@ script = ExtResource("9_puddlescr")
 
 [node name="ElkManager" type="Node2D" parent="." unique_id=999111000]
 script = ExtResource("10_elkscr")
+
+[node name="WorldLayer" type="Node2D" parent="." unique_id=100200301]
+script = ExtResource("15_worldlayerscr")
 
 [node name="MermaidManager" type="Node2D" parent="." unique_id=100200300]
 script = ExtResource("14_mermaidscr")

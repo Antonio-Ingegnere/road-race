@@ -246,46 +246,6 @@ func _spawn() -> void:
 
 # ── Draw ───────────────────────────────────────────────────────────────────────
 
-func _draw() -> void:
-	var hw: float = FRAME_W * 0.5
-	var hh: float = FRAME_H * 0.5
-
-	for elk in _elks:
-		var state: int = elk["state"]
-
-		# Shadow stays on the ground at the landing spot (no arc offset)
-		if state == STATE_JUMP_RAISE or state == STATE_JUMP_OUT:
-			draw_circle(Vector2(elk["land_x"], elk["pos"].y), SHADOW_RADIUS,
-				Color(0.0, 0.0, 0.0, 0.30))
-
-		# Arc offset: bulge upward (−y) during both jump phases
-		var arc_y: float = 0.0
-		if state == STATE_JUMP_OUT or state == STATE_JUMP_BACK:
-			arc_y = -sin(elk["jump_t"] * PI) * JUMP_ARC_HEIGHT
-		var draw_pos: Vector2 = elk["pos"] + Vector2(0.0, arc_y)
-
-		# Base sprite faces right; jump sprite faces left — both use the same rule:
-		# right=true → no flip, right=false → flip.
-		var sx: float = ELK_SCALE if elk["right"] else -ELK_SCALE
-
-		draw_set_transform(draw_pos, 0.0, Vector2(sx, ELK_SCALE))
-
-		match state:
-			STATE_STAND, STATE_EAT, STATE_JUMP_RAISE:
-				draw_texture_rect_region(
-					_tex_base,
-					Rect2(-hw, -hh, FRAME_W, FRAME_H),
-					Rect2(elk["frame"] * FRAME_W, 0, FRAME_W, FRAME_H)
-				)
-			STATE_JUMP_OUT, STATE_ON_ROAD, STATE_JUMP_BACK:
-				var jf: int = mini(elk["jump_frame"], 3)
-				draw_texture_rect_region(
-					_tex_jump,
-					Rect2(-hw, -hh, FRAME_W, FRAME_H),
-					Rect2(jf * FRAME_W, 0, FRAME_W, FRAME_H)
-				)
-
-	draw_set_transform(Vector2.ZERO)
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────

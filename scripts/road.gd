@@ -222,24 +222,6 @@ func _draw() -> void:
 	elif landscape_right == LANDSCAPE_DESERT:
 		_draw_desert_right(size)
 
-	# Trees on grass shoulders
-	var spruce_src := Rect2((_tree_frame % TREE_COLS) * TREE_FRAME_SIZE,
-							(_tree_frame / TREE_COLS) * TREE_FRAME_SIZE,
-							TREE_FRAME_SIZE, TREE_FRAME_SIZE)
-	var oak_src := Rect2((_oak_frame % OAK_COLS) * OAK_FRAME_SIZE, 0, OAK_FRAME_SIZE, OAK_FRAME_SIZE)
-	for t in _trees:
-		var p: Vector2 = t["pos"]
-		var on_left := p.x < ROAD_LEFT
-		if on_left and landscape_left != LANDSCAPE_GRASS:
-			continue
-		if not on_left and landscape_right != LANDSCAPE_GRASS:
-			continue
-		if t["type"] == 1 and _oak_tex:
-			draw_texture_rect_region(_oak_tex,
-				Rect2(p.x - OAK_HALF, p.y - OAK_HALF, OAK_HALF * 2, OAK_HALF * 2), oak_src)
-		elif _tree_tex:
-			draw_texture_rect_region(_tree_tex,
-				Rect2(p.x - TREE_HALF, p.y - TREE_HALF, TREE_HALF * 2, TREE_HALF * 2), spruce_src)
 
 	# Road shoulder lines
 	draw_line(Vector2(ROAD_LEFT, 0.0), Vector2(ROAD_LEFT, size.y), Color(1.0, 1.0, 1.0, 0.85), 4.0)
