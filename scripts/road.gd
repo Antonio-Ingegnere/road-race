@@ -12,10 +12,15 @@ const TILE_ROWS := 60
 const TREE_HALF := 192.0         # half of 384x384 display size
 const TREE_FRAME_SIZE := 256     # source frame dimensions in the sprite sheet
 const TREE_COLS := 3             # sprite sheet columns
-const TREE_SPAWN_DIST := 900.0   # world pixels between spawn checks
+const TREE_SPAWN_DIST := 180.0   # world pixels between spawn checks
 const TREE_SPAWN_CHANCE := 0.6   # probability each check produces a tree
 const TREE_FRAME_COUNT := 9
 const TREE_FRAME_DURATION := 0.14  # seconds per frame (~7 fps)
+
+const OAK_FRAME_SIZE  := 128
+const OAK_HALF        := 128.0   # half of 256x256 display size
+const OAK_FRAME_COUNT := 8
+const OAK_COLS        := 8
 
 const GRASS_TEX_SIZE := 512
 
@@ -49,10 +54,12 @@ var _car: Node2D
 var _asphalt_tex: Texture2D
 var _rotations: Array = []
 var _tree_tex: Texture2D
-var _trees: Array[Vector2] = []
+var _oak_tex: Texture2D
+var _trees: Array = []   # Array of {"pos": Vector2, "type": int}  0=spruce 1=oak
 var _tree_dist_acc := 0.0
 var _tree_rng := RandomNumberGenerator.new()
 var _tree_frame := 0
+var _oak_frame  := 0
 var _tree_frame_timer := 0.0
 var _grass_tex: ImageTexture
 var _desert_tex: ImageTexture
@@ -66,6 +73,7 @@ func _ready() -> void:
 	_car = get_parent().get_node("Car")
 	_asphalt_tex = load("res://assets/asphalt.png")
 	_tree_tex = load("res://assets/anim_tree.png")
+	_oak_tex  = load("res://assets/OakTree_x128_animated-Sheet.png")
 	_tree_rng.seed = 7331
 
 	var rng := RandomNumberGenerator.new()
@@ -93,9 +101,10 @@ func _process(delta: float) -> void:
 	_sea_time += delta
 
 	for i in range(_trees.size()):
-		_trees[i].y += scroll_px
+		_trees[i]["pos"].y += scroll_px
 	var screen_h := get_viewport_rect().size.y
-	_trees = _trees.filter(func(p: Vector2) -> bool: return p.y < screen_h + TREE_HALF)
+	_trees = _trees.filter(func(t) -> bool: return t["pos"].y < screen_h + TREE_HALF)
+	_trees.sort_custom(func(a, b) -> bool: return a["pos"].y < b["pos"].y)
 
 	_tree_dist_acc += scroll_px
 	if _tree_dist_acc >= TREE_SPAWN_DIST:
@@ -107,6 +116,7 @@ func _process(delta: float) -> void:
 	if _tree_frame_timer >= TREE_FRAME_DURATION:
 		_tree_frame_timer -= TREE_FRAME_DURATION
 		_tree_frame = (_tree_frame + 1) % TREE_FRAME_COUNT
+		_oak_frame  = (_oak_frame  + 1) % OAK_FRAME_COUNT
 
 	queue_redraw()
 
@@ -114,12 +124,14 @@ func _process(delta: float) -> void:
 func _spawn_tree() -> void:
 	var screen_w := get_viewport_rect().size.x
 	var side := _tree_rng.randi() % 2
+	var tree_type: int = _tree_rng.randi() % 2   # 0=spruce  1=oak
+	var half: float = OAK_HALF if tree_type == 1 else TREE_HALF
 	var x: float
 	if side == 0:
-		x = _tree_rng.randf_range(TREE_HALF, ROAD_LEFT - TREE_HALF)
+		x = _tree_rng.randf_range(half, ROAD_LEFT - half)
 	else:
-		x = _tree_rng.randf_range(ROAD_LEFT + ROAD_WIDTH + TREE_HALF, screen_w - TREE_HALF)
-	_trees.append(Vector2(x, -TREE_HALF))
+		x = _tree_rng.randf_range(ROAD_LEFT + ROAD_WIDTH + half, screen_w - half)
+	_trees.append({"pos": Vector2(x, -half), "type": tree_type})
 
 
 func _make_grass_tex() -> ImageTexture:
@@ -210,18 +222,24 @@ func _draw() -> void:
 	elif landscape_right == LANDSCAPE_DESERT:
 		_draw_desert_right(size)
 
-	# Trees on grass shoulders (animated sprite sheet: 3x3 grid of 256x256 frames, drawn at 128x128)
-	if _tree_tex:
-		var frame_col := _tree_frame % TREE_COLS
-		var frame_row := _tree_frame / TREE_COLS
-		var src := Rect2(frame_col * TREE_FRAME_SIZE, frame_row * TREE_FRAME_SIZE, TREE_FRAME_SIZE, TREE_FRAME_SIZE)
-		for p in _trees:
-			var on_left := p.x < ROAD_LEFT
-			if on_left and landscape_left != LANDSCAPE_GRASS:
-				continue
-			if not on_left and landscape_right != LANDSCAPE_GRASS:
-				continue
-			draw_texture_rect_region(_tree_tex, Rect2(p.x - TREE_HALF, p.y - TREE_HALF, TREE_HALF * 2, TREE_HALF * 2), src)
+	# Trees on grass shoulders
+	var spruce_src := Rect2((_tree_frame % TREE_COLS) * TREE_FRAME_SIZE,
+							(_tree_frame / TREE_COLS) * TREE_FRAME_SIZE,
+							TREE_FRAME_SIZE, TREE_FRAME_SIZE)
+	var oak_src := Rect2((_oak_frame % OAK_COLS) * OAK_FRAME_SIZE, 0, OAK_FRAME_SIZE, OAK_FRAME_SIZE)
+	for t in _trees:
+		var p: Vector2 = t["pos"]
+		var on_left := p.x < ROAD_LEFT
+		if on_left and landscape_left != LANDSCAPE_GRASS:
+			continue
+		if not on_left and landscape_right != LANDSCAPE_GRASS:
+			continue
+		if t["type"] == 1 and _oak_tex:
+			draw_texture_rect_region(_oak_tex,
+				Rect2(p.x - OAK_HALF, p.y - OAK_HALF, OAK_HALF * 2, OAK_HALF * 2), oak_src)
+		elif _tree_tex:
+			draw_texture_rect_region(_tree_tex,
+				Rect2(p.x - TREE_HALF, p.y - TREE_HALF, TREE_HALF * 2, TREE_HALF * 2), spruce_src)
 
 	# Road shoulder lines
 	draw_line(Vector2(ROAD_LEFT, 0.0), Vector2(ROAD_LEFT, size.y), Color(1.0, 1.0, 1.0, 0.85), 4.0)
