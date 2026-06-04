@@ -12,8 +12,8 @@ const TILE_ROWS := 60
 const TREE_HALF := 192.0         # half of 384x384 display size
 const TREE_FRAME_SIZE := 256     # source frame dimensions in the sprite sheet
 const TREE_COLS := 3             # sprite sheet columns
-const TREE_SPAWN_DIST := 180.0   # world pixels between spawn checks
-const TREE_SPAWN_CHANCE := 0.6   # probability each check produces a tree
+const TREE_SPAWN_DIST := 60.0    # world pixels between spawn checks
+const TREE_SPAWN_CHANCE := 0.9   # probability each check produces a tree
 const TREE_FRAME_COUNT := 9
 const TREE_FRAME_DURATION := 0.14  # seconds per frame (~7 fps)
 

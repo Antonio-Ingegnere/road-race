@@ -59,6 +59,7 @@ func _load_values() -> void:
 	_widgets["rain_enabled"].button_pressed = bool(_cfg.get_value("rain",      "enabled",    true))
 	_set_slider(_widgets["rain_drops"],     float(_cfg.get_value("rain",      "drop_count", 300)))
 	_widgets["elk_enabled"].button_pressed  = bool(_cfg.get_value("elk",       "enabled",    true))
+	_widgets["cat_enabled"].button_pressed  = bool(_cfg.get_value("cat",       "enabled",    true))
 	_set_slider(_widgets["elk_spawn"],      float(_cfg.get_value("elk",       "spawn_chance", 0.8)))
 	_set_slider(_widgets["elk_jump"],       float(_cfg.get_value("elk",       "jump_chance",  0.9)))
 	_widgets["shore_left"].selected  = int(_cfg.get_value("landscape", "left",  0))
@@ -72,6 +73,7 @@ func _save_values() -> void:
 	_cfg.set_value("rain",      "enabled",      _widgets["rain_enabled"].button_pressed)
 	_cfg.set_value("rain",      "drop_count",   int(_widgets["rain_drops"].value))
 	_cfg.set_value("elk",       "enabled",      _widgets["elk_enabled"].button_pressed)
+	_cfg.set_value("cat",       "enabled",      _widgets["cat_enabled"].button_pressed)
 	_cfg.set_value("elk",       "spawn_chance", _widgets["elk_spawn"].value)
 	_cfg.set_value("elk",       "jump_chance",  _widgets["elk_jump"].value)
 	_cfg.set_value("landscape", "left",         _widgets["shore_left"].selected)
@@ -142,6 +144,12 @@ func _build_ui() -> void:
 										  func(v): return "%d%%" % int(v * 100))
 	_widgets["elk_jump"]    = _add_slider(vbox, "Jump chance",  0.0, 1.0, 0.05,
 										  func(v): return "%d%%" % int(v * 100))
+
+	vbox.add_child(_make_separator())
+
+	# ── Cat ──
+	_add_section_label(vbox, "Cat")
+	_widgets["cat_enabled"] = _add_checkbox(vbox, "Enabled")
 
 	vbox.add_child(_make_separator())
 

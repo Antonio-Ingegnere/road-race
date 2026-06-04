@@ -48,6 +48,11 @@ var _car:          Node2D
 
 
 func _ready() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load("res://config.cfg") == OK:
+		if not bool(cfg.get_value("cat", "enabled", true)):
+			set_process(false)
+			return
 	_car      = get_parent().get_node("Car")
 	_tex_sit  = load("res://assets/CatOnaRoad_x64_animated-Sheet.png")
 	_tex_walk = load("res://assets/WalkingCat-x64_animated-Sheet.png")
