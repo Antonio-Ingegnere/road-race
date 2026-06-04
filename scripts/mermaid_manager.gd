@@ -26,6 +26,12 @@ const ROCK_BASE_R: Array = [
 	33.50, 36.50, 41.00, 40.00, 42.50, 48.00, 82.00, 95.00, 92.50,
 ]
 
+# Short tails that continue each ring upward past the rock sides (faded).
+# Right tail: i=47 (352.5°) then i=46 (345°) — above the right waterline.
+# Left tail:  i=25 (187.5°) then i=26 (195°) — above the left waterline.
+const ROCK_TAIL_R: Array = [90.50, 75.50]   # i=47, 46
+const ROCK_TAIL_L: Array = [89.00, 83.50]   # i=25, 26
+
 const SPAWN_INTERVAL     := 3.5
 const DARK_THRESHOLD     := 0.25
 const LANDSCAPE_SEASHORE := 1
@@ -132,12 +138,34 @@ func _draw() -> void:
 			var radius: float = fmod(m["ripple_phase"] + i * step, RIPPLE_MAX_RADIUS)
 			var t: float = radius / RIPPLE_MAX_RADIUS
 			var alpha: float = (1.0 - t) * 0.55
+			var ring_color := Color(0.55, 0.78, 0.92, alpha)
+			var tail_color := Color(0.55, 0.78, 0.92, alpha * 0.5)
+
+			# Main arc θ = 0° → 180°
 			var pts := PackedVector2Array()
 			for j in range(ROCK_ARC_N):
 				var theta: float = (ROCK_ARC_FIRST_IDX + j) * TAU / 48.0
 				var dist: float = ROCK_BASE_R[j] + radius
 				pts.append(rp + Vector2(cos(theta) * dist, sin(theta) * dist))
-			draw_polyline(pts, Color(0.55, 0.78, 0.92, alpha), 1.5, true)
+			draw_polyline(pts, ring_color, 1.5, true)
+
+			# Right tail: from the right endpoint upward (θ = 0° → 352.5° → 345°)
+			var tr := PackedVector2Array()
+			tr.append(pts[0])
+			for j in range(2):
+				var theta: float = (47 - j) * TAU / 48.0
+				tr.append(rp + Vector2(cos(theta) * (ROCK_TAIL_R[j] + radius),
+									  sin(theta) * (ROCK_TAIL_R[j] + radius)))
+			draw_polyline(tr, tail_color, 1.5, true)
+
+			# Left tail: from the left endpoint upward (θ = 180° → 187.5° → 195°)
+			var tl := PackedVector2Array()
+			tl.append(pts[ROCK_ARC_N - 1])
+			for j in range(2):
+				var theta: float = (25 + j) * TAU / 48.0
+				tl.append(rp + Vector2(cos(theta) * (ROCK_TAIL_L[j] + radius),
+									  sin(theta) * (ROCK_TAIL_L[j] + radius)))
+			draw_polyline(tl, tail_color, 1.5, true)
 
 	# Sprites on top
 	for m in _mermaids:
