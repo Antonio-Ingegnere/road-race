@@ -74,6 +74,7 @@ func _on_hit() -> void:
 		$ElkManager.set_process(false)
 		$CatManager.set_process(false)
 		$PoliceManager.set_process(false)
+		$MermaidManager.set_process(false)
 		$GameOverlay.visible = true
 	else:
 		_blink_timer = BLINK_DURATION
