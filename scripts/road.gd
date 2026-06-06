@@ -12,8 +12,10 @@ const TILE_ROWS := 60
 const TREE_HALF := 192.0         # half of 384x384 display size
 const TREE_FRAME_SIZE := 256     # source frame dimensions in the sprite sheet
 const TREE_COLS := 3             # sprite sheet columns
-const TREE_SPAWN_DIST := 60.0    # world pixels between spawn checks
-const TREE_SPAWN_CHANCE := 0.9   # probability each check produces a tree
+const TREE_SPAWN_BASE   := 110.0  # base world-px interval between spawns per side
+const TREE_SPAWN_JITTER := 40.0   # ± random jitter applied to each interval
+const TREE_MIN_DIST     := 240.0  # minimum center-to-center distance between any two trees
+const TREE_SPAWN_TRIES  := 6      # candidate X positions tried before giving up
 const TREE_FRAME_COUNT := 9
 const TREE_FRAME_DURATION := 0.14  # seconds per frame (~7 fps)
 
@@ -62,8 +64,11 @@ var _tree_tex:    Texture2D
 var _oak_tex:     Texture2D
 var _blossom_tex: Texture2D
 var _trees: Array = []   # Array of {"pos": Vector2, "type": int}  0=spruce 1=oak 2=blossom
-var _tree_dist_acc := 0.0
-var _tree_rng := RandomNumberGenerator.new()
+var _tree_rng        := RandomNumberGenerator.new()
+var _tree_dist_left  := 0.0
+var _tree_dist_right := 55.0   # half-interval phase offset so sides don't sync
+var _tree_next_left  := 110.0
+var _tree_next_right := 110.0
 var _tree_frame    := 0
 var _oak_frame     := 0
 var _blossom_frame := 0
@@ -114,11 +119,16 @@ func _process(delta: float) -> void:
 	_trees = _trees.filter(func(t) -> bool: return t["pos"].y < screen_h + TREE_HALF)
 	_trees.sort_custom(func(a, b) -> bool: return a["pos"].y < b["pos"].y)
 
-	_tree_dist_acc += scroll_px
-	if _tree_dist_acc >= TREE_SPAWN_DIST:
-		_tree_dist_acc -= TREE_SPAWN_DIST
-		if _tree_rng.randf() < TREE_SPAWN_CHANCE:
-			_spawn_tree()
+	_tree_dist_left  += scroll_px
+	_tree_dist_right += scroll_px
+	if _tree_dist_left >= _tree_next_left:
+		_tree_dist_left  = 0.0
+		_tree_next_left  = TREE_SPAWN_BASE + _tree_rng.randf_range(-TREE_SPAWN_JITTER, TREE_SPAWN_JITTER)
+		_spawn_tree(0)
+	if _tree_dist_right >= _tree_next_right:
+		_tree_dist_right = 0.0
+		_tree_next_right = TREE_SPAWN_BASE + _tree_rng.randf_range(-TREE_SPAWN_JITTER, TREE_SPAWN_JITTER)
+		_spawn_tree(1)
 
 	_tree_frame_timer += delta
 	if _tree_frame_timer >= TREE_FRAME_DURATION:
@@ -130,17 +140,32 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
-func _spawn_tree() -> void:
+func _spawn_tree(side: int) -> void:
 	var screen_w := get_viewport_rect().size.x
-	var side := _tree_rng.randi() % 2
 	var tree_type: int = _tree_rng.randi() % 3   # 0=spruce  1=oak  2=blossom
 	var half: float = ([TREE_HALF, OAK_HALF, BLOSSOM_HALF] as Array)[tree_type]
-	var x: float
+	var x_min: float
+	var x_max: float
 	if side == 0:
-		x = _tree_rng.randf_range(half, ROAD_LEFT - half)
+		x_min = half
+		x_max = ROAD_LEFT - half
 	else:
-		x = _tree_rng.randf_range(ROAD_LEFT + ROAD_WIDTH + half, screen_w - half)
-	_trees.append({"pos": Vector2(x, -half), "type": tree_type})
+		x_min = ROAD_LEFT + ROAD_WIDTH + half
+		x_max = screen_w - half
+	if x_max <= x_min:
+		return
+
+	for _attempt in range(TREE_SPAWN_TRIES):
+		var cx: float = _tree_rng.randf_range(x_min, x_max)
+		var candidate := Vector2(cx, -half)
+		var too_close := false
+		for t in _trees:
+			if t["pos"].distance_to(candidate) < TREE_MIN_DIST:
+				too_close = true
+				break
+		if not too_close:
+			_trees.append({"pos": candidate, "type": tree_type})
+			return
 
 
 func _make_grass_tex() -> ImageTexture:

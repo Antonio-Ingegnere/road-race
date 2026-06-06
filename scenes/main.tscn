@@ -13,8 +13,8 @@
 [ext_resource type="Script" uid="uid://dtxqg0hr8vgp" path="res://scripts/settings_menu.gd" id="11_settingsscr"]
 [ext_resource type="Script" uid="uid://bcekgfmeohlkj" path="res://scripts/cat_manager.gd" id="12_catscr"]
 [ext_resource type="Script" uid="uid://dhu225c7q1ijv" path="res://scripts/police_manager.gd" id="13_policescr"]
-[ext_resource type="Script" path="res://scripts/mermaid_manager.gd" id="14_mermaidscr"]
-[ext_resource type="Script" path="res://scripts/world_layer.gd" id="15_worldlayerscr"]
+[ext_resource type="Script" uid="uid://bhhjee4ocfad4" path="res://scripts/mermaid_manager.gd" id="14_mermaidscr"]
+[ext_resource type="Script" uid="uid://dxqdar6mj81t5" path="res://scripts/world_layer.gd" id="15_worldlayerscr"]
 
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")
