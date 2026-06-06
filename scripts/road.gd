@@ -17,10 +17,15 @@ const TREE_SPAWN_CHANCE := 0.9   # probability each check produces a tree
 const TREE_FRAME_COUNT := 9
 const TREE_FRAME_DURATION := 0.14  # seconds per frame (~7 fps)
 
-const OAK_FRAME_SIZE  := 128
-const OAK_HALF        := 128.0   # half of 256x256 display size
-const OAK_FRAME_COUNT := 8
-const OAK_COLS        := 8
+const OAK_FRAME_SIZE      := 128
+const OAK_HALF            := 128.0   # half of 256x256 display size
+const OAK_FRAME_COUNT     := 8
+const OAK_COLS            := 8
+
+const BLOSSOM_FRAME_SIZE  := 128
+const BLOSSOM_HALF        := 64.0    # half of 128x128 display size (1x scale)
+const BLOSSOM_FRAME_COUNT := 10
+const BLOSSOM_COLS        := 10
 
 const GRASS_TEX_SIZE := 512
 
@@ -53,13 +58,15 @@ var _world_scroll := 0.0
 var _car: Node2D
 var _asphalt_tex: Texture2D
 var _rotations: Array = []
-var _tree_tex: Texture2D
-var _oak_tex: Texture2D
-var _trees: Array = []   # Array of {"pos": Vector2, "type": int}  0=spruce 1=oak
+var _tree_tex:    Texture2D
+var _oak_tex:     Texture2D
+var _blossom_tex: Texture2D
+var _trees: Array = []   # Array of {"pos": Vector2, "type": int}  0=spruce 1=oak 2=blossom
 var _tree_dist_acc := 0.0
 var _tree_rng := RandomNumberGenerator.new()
-var _tree_frame := 0
-var _oak_frame  := 0
+var _tree_frame    := 0
+var _oak_frame     := 0
+var _blossom_frame := 0
 var _tree_frame_timer := 0.0
 var _grass_tex: ImageTexture
 var _desert_tex: ImageTexture
@@ -72,8 +79,9 @@ var _sea_time := 0.0
 func _ready() -> void:
 	_car = get_parent().get_node("Car")
 	_asphalt_tex = load("res://assets/asphalt.png")
-	_tree_tex = load("res://assets/anim_tree.png")
-	_oak_tex  = load("res://assets/OakTree_x128_animated-Sheet.png")
+	_tree_tex    = load("res://assets/anim_tree.png")
+	_oak_tex     = load("res://assets/OakTree_x128_animated-Sheet.png")
+	_blossom_tex = load("res://assets/BlossomTree_x128_animated-Sheet.png")
 	_tree_rng.seed = 7331
 
 	var rng := RandomNumberGenerator.new()
@@ -115,8 +123,9 @@ func _process(delta: float) -> void:
 	_tree_frame_timer += delta
 	if _tree_frame_timer >= TREE_FRAME_DURATION:
 		_tree_frame_timer -= TREE_FRAME_DURATION
-		_tree_frame = (_tree_frame + 1) % TREE_FRAME_COUNT
-		_oak_frame  = (_oak_frame  + 1) % OAK_FRAME_COUNT
+		_tree_frame    = (_tree_frame    + 1) % TREE_FRAME_COUNT
+		_oak_frame     = (_oak_frame     + 1) % OAK_FRAME_COUNT
+		_blossom_frame = (_blossom_frame + 1) % BLOSSOM_FRAME_COUNT
 
 	queue_redraw()
 
@@ -124,8 +133,8 @@ func _process(delta: float) -> void:
 func _spawn_tree() -> void:
 	var screen_w := get_viewport_rect().size.x
 	var side := _tree_rng.randi() % 2
-	var tree_type: int = _tree_rng.randi() % 2   # 0=spruce  1=oak
-	var half: float = OAK_HALF if tree_type == 1 else TREE_HALF
+	var tree_type: int = _tree_rng.randi() % 3   # 0=spruce  1=oak  2=blossom
+	var half: float = ([TREE_HALF, OAK_HALF, BLOSSOM_HALF] as Array)[tree_type]
 	var x: float
 	if side == 0:
 		x = _tree_rng.randf_range(half, ROAD_LEFT - half)

@@ -27,6 +27,9 @@ func _draw() -> void:
 	var oak_src := Rect2(
 		(_road._oak_frame % _road.OAK_COLS) * _road.OAK_FRAME_SIZE, 0,
 		_road.OAK_FRAME_SIZE, _road.OAK_FRAME_SIZE)
+	var blossom_src := Rect2(
+		(_road._blossom_frame % _road.BLOSSOM_COLS) * _road.BLOSSOM_FRAME_SIZE, 0,
+		_road.BLOSSOM_FRAME_SIZE, _road.BLOSSOM_FRAME_SIZE)
 
 	for t in _road._trees:
 		var p: Vector2 = t["pos"]
@@ -36,9 +39,11 @@ func _draw() -> void:
 		if not on_left and _road.landscape_right != _road.LANDSCAPE_GRASS:
 			continue
 		# Ground contact measured from sprite pixels:
-		# spruce sprite fills rows 7–118 of 256-src at 1.5x → ground at pos.y − 15
-		# oak    sprite fills rows 2–125 of 128-src at 2.0x → ground at pos.y + 122
-		var ground_y: float = p.y + (-15.0 if t["type"] == 0 else 122.0)
+		# spruce:  rows 7–118 of 256-src at 1.5x → pos.y − 15
+		# oak:     rows 2–125 of 128-src at 2.0x → pos.y + 122
+		# blossom: rows 5–123 of 128-src at 1.0x → pos.y + 59
+		const GROUND_OFFSET := [-15.0, 122.0, 59.0]
+		var ground_y: float = p.y + GROUND_OFFSET[t["type"]]
 		items.append({"y": ground_y, "kind": 0, "data": t})
 
 	# ── Elk ────────────────────────────────────────────────────────────────────
@@ -50,23 +55,32 @@ func _draw() -> void:
 
 	for item in items:
 		if item["kind"] == 0:
-			_draw_tree(item["data"], spruce_src, oak_src)
+			_draw_tree(item["data"], spruce_src, oak_src, blossom_src)
 		else:
 			_draw_elk(item["data"])
 
 	draw_set_transform(Vector2.ZERO)
 
 
-func _draw_tree(t: Dictionary, spruce_src: Rect2, oak_src: Rect2) -> void:
+func _draw_tree(t: Dictionary, spruce_src: Rect2, oak_src: Rect2, blossom_src: Rect2) -> void:
 	var p: Vector2 = t["pos"]
-	if t["type"] == 1 and _road._oak_tex:
-		draw_texture_rect_region(_road._oak_tex,
-			Rect2(p.x - _road.OAK_HALF, p.y - _road.OAK_HALF, _road.OAK_HALF * 2, _road.OAK_HALF * 2),
-			oak_src)
-	elif _road._tree_tex:
-		draw_texture_rect_region(_road._tree_tex,
-			Rect2(p.x - _road.TREE_HALF, p.y - _road.TREE_HALF, _road.TREE_HALF * 2, _road.TREE_HALF * 2),
-			spruce_src)
+	match t["type"]:
+		1:
+			if _road._oak_tex:
+				draw_texture_rect_region(_road._oak_tex,
+					Rect2(p.x - _road.OAK_HALF, p.y - _road.OAK_HALF, _road.OAK_HALF * 2, _road.OAK_HALF * 2),
+					oak_src)
+		2:
+			if _road._blossom_tex:
+				draw_texture_rect_region(_road._blossom_tex,
+					Rect2(p.x - _road.BLOSSOM_HALF, p.y - _road.BLOSSOM_HALF,
+						  _road.BLOSSOM_HALF * 2, _road.BLOSSOM_HALF * 2),
+					blossom_src)
+		_:
+			if _road._tree_tex:
+				draw_texture_rect_region(_road._tree_tex,
+					Rect2(p.x - _road.TREE_HALF, p.y - _road.TREE_HALF, _road.TREE_HALF * 2, _road.TREE_HALF * 2),
+					spruce_src)
 
 
 func _draw_elk(elk: Dictionary) -> void:
