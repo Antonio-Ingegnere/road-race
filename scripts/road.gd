@@ -92,6 +92,7 @@ var _tw_tex: Texture2D
 var _tumbleweeds: Array = []
 var _tw_spawn_timer := 0.0
 var _tw_next_spawn  := 0.0
+var _dust: Array = []
 
 var landscape_left  := LANDSCAPE_GRASS
 var landscape_right := LANDSCAPE_GRASS
@@ -195,6 +196,30 @@ func _process(delta: float) -> void:
 		var px: float = tw["pos"].x
 		return px >= tw["x0"] - tw_hw and px <= tw["x1"] + tw_hw
 	)
+
+	# Emit dust from moving tumbleweeds
+	for tw in _tumbleweeds:
+		if abs(tw["vel_x"]) > 1.0 and not tw["jumping"] and randf() < 0.4:
+			var ex: float = tw["pos"].x - sign(tw["vel_x"]) * TW_ROLL_RADIUS * 0.6
+			_dust.append({
+				"pos":      Vector2(ex + randf_range(-3.0, 3.0),
+									tw["pos"].y + TW_ROLL_RADIUS * 0.7 + randf_range(-2.0, 2.0)),
+				"vx":       randf_range(-6.0, 6.0) - tw["vel_x"] * 0.12,
+				"vy":       randf_range(-14.0, -5.0),
+				"age":      0.0,
+				"lifetime": randf_range(0.6, 1.2),
+				"radius":   randf_range(2.0, 4.5),
+			})
+
+	# Update dust particles
+	for i in range(_dust.size() - 1, -1, -1):
+		var p: Dictionary = _dust[i]
+		p["pos"].y += scroll_px
+		p["pos"].x += p["vx"] * delta
+		p["pos"].y += p["vy"] * delta
+		p["age"]   += delta
+		if p["age"] >= p["lifetime"]:
+			_dust.remove_at(i)
 
 	queue_redraw()
 
@@ -594,6 +619,17 @@ func _draw_desert_tumbleweeds(x0: float, x1: float) -> void:
 		return
 	var hw := TW_FRAME * 0.5
 	var hh := TW_FRAME * 0.5
+
+	# Dust (drawn first, behind sprites)
+	for p in _dust:
+		var px: float = p["pos"].x
+		if px < x0 - 20.0 or px > x1 + 20.0:
+			continue
+		var t: float     = p["age"] / p["lifetime"]
+		var alpha: float = (1.0 - t) * (1.0 - t) * 0.50
+		var r: float     = p["radius"] * (1.0 + t * 2.0)
+		draw_circle(p["pos"], r, Color(0.85, 0.72, 0.48, alpha))
+
 	for tw in _tumbleweeds:
 		var tx: float = tw["pos"].x
 		if tx < x0 - hw or tx > x1 + hw:
