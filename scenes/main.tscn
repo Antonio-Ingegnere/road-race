@@ -16,6 +16,7 @@
 [ext_resource type="Script" uid="uid://bhhjee4ocfad4" path="res://scripts/mermaid_manager.gd" id="14_mermaidscr"]
 [ext_resource type="Script" uid="uid://dxqdar6mj81t5" path="res://scripts/world_layer.gd" id="15_worldlayerscr"]
 
+
 [node name="Main" type="Node2D" unique_id=722060991]
 script = ExtResource("1_mainscr")
 

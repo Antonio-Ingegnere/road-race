@@ -55,6 +55,19 @@ const DESERT_SHRUB_DARK  := Color(0.12, 0.24, 0.08)
 const DESERT_SHRUB_LITE  := Color(0.28, 0.46, 0.18, 0.55)
 const DESERT_SHRUB_SHAD  := Color(0.10, 0.07, 0.03, 0.30)
 
+const TW_SCALE         := 0.25
+const TW_FRAME         := 128
+const TW_ROLL_RADIUS   := 16.0   # TW_FRAME * TW_SCALE * 0.5
+const TW_SPEED_MIN     := 60.0
+const TW_SPEED_MAX     := 130.0
+const TW_SPAWN_MIN     := 0.75
+const TW_SPAWN_MAX     := 2.25
+const TW_JUMP_ITVL_MIN := 0.8
+const TW_JUMP_ITVL_MAX := 2.2
+const TW_JUMP_H_MIN    := 5.0
+const TW_JUMP_H_MAX    := 15.0
+const TW_JUMP_DUR      := 0.55
+
 var scroll_offset := 0.0
 var _world_scroll := 0.0
 var _car: Node2D
@@ -75,6 +88,10 @@ var _blossom_frame := 0
 var _tree_frame_timer := 0.0
 var _grass_tex: ImageTexture
 var _desert_tex: ImageTexture
+var _tw_tex: Texture2D
+var _tumbleweeds: Array = []
+var _tw_spawn_timer := 0.0
+var _tw_next_spawn  := 0.0
 
 var landscape_left  := LANDSCAPE_GRASS
 var landscape_right := LANDSCAPE_GRASS
@@ -99,6 +116,8 @@ func _ready() -> void:
 
 	_grass_tex  = _make_grass_tex()
 	_desert_tex = _make_desert_tex()
+	_tw_tex     = load("res://assets/Tumbleweed_x128.png")
+	_tw_next_spawn = randf_range(TW_SPAWN_MIN, TW_SPAWN_MAX)
 
 	var cfg := ConfigFile.new()
 	if cfg.load("res://config.cfg") == OK:
@@ -136,6 +155,46 @@ func _process(delta: float) -> void:
 		_tree_frame    = (_tree_frame    + 1) % TREE_FRAME_COUNT
 		_oak_frame     = (_oak_frame     + 1) % OAK_FRAME_COUNT
 		_blossom_frame = (_blossom_frame + 1) % BLOSSOM_FRAME_COUNT
+
+	# Tumbleweeds (desert only)
+	var screen_w: float = get_viewport_rect().size.x
+	if landscape_left == LANDSCAPE_DESERT or landscape_right == LANDSCAPE_DESERT:
+		_tw_spawn_timer += delta
+		if _tw_spawn_timer >= _tw_next_spawn:
+			_tw_spawn_timer = 0.0
+			_tw_next_spawn  = randf_range(TW_SPAWN_MIN, TW_SPAWN_MAX)
+			_tw_spawn(screen_w, screen_h)
+	for tw in _tumbleweeds:
+		tw["pos"].y += scroll_px
+		tw["pos"].x += tw["vel_x"] * delta
+		var bmin: float = tw["x0"] + TW_ROLL_RADIUS
+		var bmax: float = tw["x1"] - TW_ROLL_RADIUS
+		if tw["pos"].x < bmin:
+			tw["pos"].x = bmin
+			tw["vel_x"] = 0.0
+		elif tw["pos"].x > bmax:
+			tw["pos"].x = bmax
+			tw["vel_x"] = 0.0
+		tw["angle"]  = tw["angle"] + tw["vel_x"] * delta / TW_ROLL_RADIUS
+		if tw["jumping"]:
+			tw["jump_t"] += delta / TW_JUMP_DUR
+			if tw["jump_t"] >= 1.0:
+				tw["jumping"]    = false
+				tw["jump_t"]     = 0.0
+				tw["jump_timer"] = randf_range(TW_JUMP_ITVL_MIN, TW_JUMP_ITVL_MAX)
+		else:
+			tw["jump_timer"] -= delta
+			if tw["jump_timer"] <= 0.0:
+				tw["jumping"]     = true
+				tw["jump_t"]      = 0.0
+				tw["jump_height"] = randf_range(TW_JUMP_H_MIN, TW_JUMP_H_MAX)
+	var tw_hw: float = TW_FRAME * TW_SCALE * 0.5
+	_tumbleweeds = _tumbleweeds.filter(func(tw) -> bool:
+		if tw["pos"].y > screen_h + tw_hw:
+			return false
+		var px: float = tw["pos"].x
+		return px >= tw["x0"] - tw_hw and px <= tw["x1"] + tw_hw
+	)
 
 	queue_redraw()
 
@@ -487,6 +546,7 @@ func _draw_desert_left(size: Vector2) -> void:
 	_draw_desert_ridgelines(0.0, ROAD_LEFT, size)
 	_draw_desert_spots(0.0, ROAD_LEFT, size)
 	_draw_desert_deco(size, 0.0, ROAD_LEFT, 0)
+	_draw_desert_tumbleweeds(0.0, ROAD_LEFT)
 
 
 func _draw_desert_right(size: Vector2) -> void:
@@ -495,6 +555,60 @@ func _draw_desert_right(size: Vector2) -> void:
 	_draw_desert_ridgelines(x0, size.x, size)
 	_draw_desert_spots(x0, size.x, size)
 	_draw_desert_deco(size, x0, size.x, 112237)
+	_draw_desert_tumbleweeds(x0, size.x)
+
+
+func _tw_spawn(screen_w: float, screen_h: float) -> void:
+	var sides: Array = []
+	if landscape_left  == LANDSCAPE_DESERT:
+		sides.append(0)
+	if landscape_right == LANDSCAPE_DESERT:
+		sides.append(1)
+	if sides.is_empty():
+		return
+	var side: int  = sides[randi() % sides.size()]
+	var hw: float  = TW_FRAME * TW_SCALE * 0.5
+	var x0: float  = 0.0       if side == 0 else ROAD_LEFT + ROAD_WIDTH
+	var x1: float  = ROAD_LEFT if side == 0 else screen_w
+	if x1 - hw <= x0 + hw:
+		return
+	var x: float     = randf_range(x0 + hw, x1 - hw)
+	var going_right: bool = randf() < 0.5
+	var speed: float = randf_range(TW_SPEED_MIN, TW_SPEED_MAX)
+	var vel_x: float = speed if going_right else -speed
+	_tumbleweeds.append({
+		"pos":         Vector2(x, -hw),
+		"vel_x":       vel_x,
+		"angle":       randf_range(0.0, TAU),
+		"jumping":     false,
+		"jump_t":      0.0,
+		"jump_timer":  randf_range(TW_JUMP_ITVL_MIN, TW_JUMP_ITVL_MAX),
+		"jump_height": randf_range(TW_JUMP_H_MIN, TW_JUMP_H_MAX),
+		"x0":          x0,
+		"x1":          x1,
+	})
+
+
+func _draw_desert_tumbleweeds(x0: float, x1: float) -> void:
+	if not _tw_tex:
+		return
+	var hw := TW_FRAME * 0.5
+	var hh := TW_FRAME * 0.5
+	for tw in _tumbleweeds:
+		var tx: float = tw["pos"].x
+		if tx < x0 - hw or tx > x1 + hw:
+			continue
+		var arc_y: float = 0.0
+		if tw["jumping"]:
+			arc_y = -sin(tw["jump_t"] * PI) * tw["jump_height"]
+		var shadow_r: float = hw * TW_SCALE * 0.72 * (1.0 - abs(arc_y) / TW_JUMP_H_MAX * 0.45)
+		draw_set_transform(tw["pos"], 0.0, Vector2(shadow_r, shadow_r * 0.22))
+		draw_circle(Vector2.ZERO, 1.0, Color(0.0, 0.0, 0.0, 0.22))
+		draw_set_transform(Vector2.ZERO)
+		var draw_pos: Vector2 = tw["pos"] + Vector2(0.0, arc_y)
+		draw_set_transform(draw_pos, tw["angle"], Vector2(TW_SCALE, TW_SCALE))
+		draw_texture_rect(_tw_tex, Rect2(-hw, -hh, TW_FRAME, TW_FRAME), false)
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_desert_base(x0: float, x1: float, size: Vector2) -> void:
