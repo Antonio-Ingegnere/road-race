@@ -3,9 +3,10 @@ extends CanvasLayer
 const VP_W := 1920.0
 const VP_H := 1080.0
 const PANEL_W := 500.0
-const PANEL_H := 640.0
+const PANEL_H := 720.0
 
-const RESOLUTIONS := ["1280x720", "1920x1080", "2560x1440", "3840x2160"]
+const RESOLUTIONS  := ["1280x720", "1920x1080", "2560x1440", "3840x2160"]
+const LEVELS       := ["Low", "Medium", "Top"]
 
 var _widgets: Dictionary = {}
 var _cfg := ConfigFile.new()
@@ -64,6 +65,9 @@ func _load_values() -> void:
 	_set_slider(_widgets["elk_jump"],       float(_cfg.get_value("elk",       "jump_chance",  0.9)))
 	_widgets["shore_left"].selected  = int(_cfg.get_value("landscape", "left",  0))
 	_widgets["shore_right"].selected = int(_cfg.get_value("landscape", "right", 0))
+	_widgets["car_engine"].selected     = int(_cfg.get_value("car", "engine",     2))
+	_widgets["car_suspension"].selected = int(_cfg.get_value("car", "suspension", 1))
+	_widgets["car_brakes"].selected     = int(_cfg.get_value("car", "brakes",     1))
 
 
 func _save_values() -> void:
@@ -78,6 +82,9 @@ func _save_values() -> void:
 	_cfg.set_value("elk",       "jump_chance",  _widgets["elk_jump"].value)
 	_cfg.set_value("landscape", "left",         _widgets["shore_left"].selected)
 	_cfg.set_value("landscape", "right",        _widgets["shore_right"].selected)
+	_cfg.set_value("car", "engine",             _widgets["car_engine"].selected)
+	_cfg.set_value("car", "suspension",         _widgets["car_suspension"].selected)
+	_cfg.set_value("car", "brakes",             _widgets["car_brakes"].selected)
 	_cfg.save("res://config.cfg")
 
 
@@ -102,18 +109,30 @@ func _build_ui() -> void:
 		margin.add_theme_constant_override(side, 24)
 	panel.add_child(margin)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 10)
-	margin.add_child(vbox)
+	# Outer vbox: title / scroll / footer — never overflows
+	var outer := VBoxContainer.new()
+	outer.add_theme_constant_override("separation", 8)
+	margin.add_child(outer)
 
 	# Title
 	var title := Label.new()
 	title.text = "SETTINGS"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 26)
-	vbox.add_child(title)
+	outer.add_child(title)
 
-	vbox.add_child(_make_separator())
+	outer.add_child(_make_separator())
+
+	# Scrollable section — expands to fill available space
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	outer.add_child(scroll)
+
+	var vbox := VBoxContainer.new()
+	vbox.add_theme_constant_override("separation", 10)
+	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(vbox)
 
 	# ── Display ──
 	_add_section_label(vbox, "Display")
@@ -160,24 +179,26 @@ func _build_ui() -> void:
 
 	vbox.add_child(_make_separator())
 
-	# Note
+	# ── Car ──
+	_add_section_label(vbox, "Car")
+	_widgets["car_engine"]     = _add_option_button(vbox, "Engine",     LEVELS)
+	_widgets["car_suspension"] = _add_option_button(vbox, "Suspension", LEVELS)
+	_widgets["car_brakes"]     = _add_option_button(vbox, "Brakes",     LEVELS)
+
+	# ── Footer (always visible) ──
+	outer.add_child(_make_separator())
+
 	var note := Label.new()
 	note.text = "OK saves settings and restarts the game."
 	note.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	note.add_theme_color_override("font_color", Color(0.65, 0.65, 0.65))
 	note.add_theme_font_size_override("font_size", 13)
-	vbox.add_child(note)
+	outer.add_child(note)
 
-	# Spacer
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	vbox.add_child(spacer)
-
-	# Buttons
 	var btn_row := HBoxContainer.new()
 	btn_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	btn_row.add_theme_constant_override("separation", 20)
-	vbox.add_child(btn_row)
+	outer.add_child(btn_row)
 
 	var ok_btn := Button.new()
 	ok_btn.text = "OK"

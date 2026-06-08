@@ -3,15 +3,20 @@ extends Node2D
 const KMH_TO_PXS := 7.5
 const MIN_SPEED_KMH := 50.0
 const MAX_SPEED_KMH := 220.0
-const SPEED_CHANGE_RATE := 60.0  # km/h per second
-const LATERAL_SPEED := 420.0
 const ROAD_LEFT := 760.0
 const ROAD_RIGHT := 1160.0
 const CAR_HALF_WIDTH := 42.0
 
+const ENGINE_LEVELS  := [20.0,  40.0,  60.0]   # accel km/h per second; top = original
+const BRAKE_LEVELS   := [30.0,  60.0, 150.0]   # decel km/h per second; medium = original
+const LATERAL_LEVELS := [210.0, 420.0, 630.0]  # lateral speed px/s; medium = original
+
 var speed_kmh := MIN_SPEED_KMH
 
 var _tilt_deg: float = 0.0
+var _accel_rate:    float = ENGINE_LEVELS[2]
+var _brake_rate:    float = BRAKE_LEVELS[1]
+var _lateral_speed: float = LATERAL_LEVELS[1]
 
 var _shadow_tex: Texture2D
 var _shadow_hw: float
@@ -19,6 +24,14 @@ var _shadow_hh: float
 
 
 func _ready() -> void:
+	var cfg := ConfigFile.new()
+	if cfg.load("res://config.cfg") == OK:
+		var eng: int = int(cfg.get_value("car", "engine",     2))
+		var sus: int = int(cfg.get_value("car", "suspension", 1))
+		var brk: int = int(cfg.get_value("car", "brakes",     1))
+		_accel_rate    = ENGINE_LEVELS[clampi(eng, 0, 2)]
+		_lateral_speed = LATERAL_LEVELS[clampi(sus, 0, 2)]
+		_brake_rate    = BRAKE_LEVELS[clampi(brk, 0, 2)]
 	_shadow_tex = load("res://assets/car.png")
 	_shadow_hw = _shadow_tex.get_width() * 0.5
 	_shadow_hh = _shadow_tex.get_height() * 0.5
@@ -26,14 +39,14 @@ func _ready() -> void:
 
 func _process(delta: float) -> void:
 	if Input.is_action_pressed("ui_up"):
-		speed_kmh = minf(speed_kmh + SPEED_CHANGE_RATE * delta, MAX_SPEED_KMH)
+		speed_kmh = minf(speed_kmh + _accel_rate * delta, MAX_SPEED_KMH)
 	if Input.is_action_pressed("ui_down"):
-		speed_kmh = maxf(speed_kmh - SPEED_CHANGE_RATE * delta, MIN_SPEED_KMH)
+		speed_kmh = maxf(speed_kmh - _brake_rate * delta, MIN_SPEED_KMH)
 
 	if Input.is_action_pressed("ui_left"):
-		position.x -= LATERAL_SPEED * delta
+		position.x -= _lateral_speed * delta
 	if Input.is_action_pressed("ui_right"):
-		position.x += LATERAL_SPEED * delta
+		position.x += _lateral_speed * delta
 
 	position.x = clamp(position.x, ROAD_LEFT + CAR_HALF_WIDTH, ROAD_RIGHT - CAR_HALF_WIDTH)
 
