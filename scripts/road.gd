@@ -88,6 +88,7 @@ var _blossom_frame := 0
 var _tree_frame_timer := 0.0
 var _grass_tex: ImageTexture
 var _desert_tex: ImageTexture
+var _cactus_tex: Texture2D
 var _tw_tex: Texture2D
 var _tumbleweeds: Array = []
 var _tw_spawn_timer := 0.0
@@ -117,6 +118,7 @@ func _ready() -> void:
 
 	_grass_tex  = _make_grass_tex()
 	_desert_tex = _make_desert_tex()
+	_cactus_tex = load("res://assets/CactusBig_x128.png")
 	_tw_tex     = load("res://assets/Tumbleweed_x128.png")
 	_tw_next_spawn = randf_range(TW_SPAWN_MIN, TW_SPAWN_MAX)
 
@@ -735,6 +737,12 @@ func _draw_desert_deco(size: Vector2, x0: float, x1: float, seed_base: int) -> v
 			var cy := sy + rng.randf_range(-20.0, 20.0)
 			_draw_desert_shrub(Vector2(cx, cy), rng)
 
+		if rng.randf() < 0.30:
+			var cax  := rng.randf_range(x0 + MARGIN + 20.0, x1 - MARGIN - 20.0)
+			var cay  := sy + rng.randf_range(-20.0, 20.0)
+			var cflip := bool(rng.randi() % 2)
+			_draw_desert_cactus(Vector2(cax, cay), cflip)
+
 		wy += SPACING
 
 
@@ -779,6 +787,16 @@ func _draw_desert_shrub(pos: Vector2, rng: RandomNumberGenerator) -> void:
 	var hi := pos + Vector2(-base_r * 0.22, -base_r * 0.26)
 	draw_set_transform(hi, 0.0, Vector2(base_r * 0.40, base_r * 0.30))
 	draw_circle(Vector2.ZERO, 1.0, DESERT_SHRUB_LITE)
+	draw_set_transform(Vector2.ZERO)
+
+
+func _draw_desert_cactus(pos: Vector2, flip_v: bool) -> void:
+	if not _cactus_tex:
+		return
+	const HALF := 64.0
+	var sv: float = -1.0 if flip_v else 1.0
+	draw_set_transform(pos, 0.0, Vector2(sv, 1.0))
+	draw_texture_rect(_cactus_tex, Rect2(-HALF, -HALF, HALF * 2, HALF * 2), false)
 	draw_set_transform(Vector2.ZERO)
 
 
