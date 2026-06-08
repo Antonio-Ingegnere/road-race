@@ -64,23 +64,24 @@ func _draw() -> void:
 
 func _draw_tree(t: Dictionary, spruce_src: Rect2, oak_src: Rect2, blossom_src: Rect2) -> void:
 	var p: Vector2 = t["pos"]
+	var sx: float = -1.0 if t["flip"] else 1.0
 	match t["type"]:
 		1:
 			if _road._oak_tex:
-				draw_texture_rect_region(_road._oak_tex,
-					Rect2(p.x - _road.OAK_HALF, p.y - _road.OAK_HALF, _road.OAK_HALF * 2, _road.OAK_HALF * 2),
-					oak_src)
+				var h: float = _road.OAK_HALF
+				draw_set_transform(p, 0.0, Vector2(sx, 1.0))
+				draw_texture_rect_region(_road._oak_tex, Rect2(-h, -h, h * 2, h * 2), oak_src)
 		2:
 			if _road._blossom_tex:
-				draw_texture_rect_region(_road._blossom_tex,
-					Rect2(p.x - _road.BLOSSOM_HALF, p.y - _road.BLOSSOM_HALF,
-						  _road.BLOSSOM_HALF * 2, _road.BLOSSOM_HALF * 2),
-					blossom_src)
+				var h: float = _road.BLOSSOM_HALF
+				draw_set_transform(p, 0.0, Vector2(sx, 1.0))
+				draw_texture_rect_region(_road._blossom_tex, Rect2(-h, -h, h * 2, h * 2), blossom_src)
 		_:
 			if _road._tree_tex:
-				draw_texture_rect_region(_road._tree_tex,
-					Rect2(p.x - _road.TREE_HALF, p.y - _road.TREE_HALF, _road.TREE_HALF * 2, _road.TREE_HALF * 2),
-					spruce_src)
+				var h: float = _road.TREE_HALF
+				draw_set_transform(p, 0.0, Vector2(sx, 1.0))
+				draw_texture_rect_region(_road._tree_tex, Rect2(-h, -h, h * 2, h * 2), spruce_src)
+	draw_set_transform(Vector2.ZERO)
 
 
 func _draw_elk(elk: Dictionary) -> void:

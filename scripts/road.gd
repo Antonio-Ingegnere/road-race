@@ -248,7 +248,7 @@ func _spawn_tree(side: int) -> void:
 				too_close = true
 				break
 		if not too_close:
-			_trees.append({"pos": candidate, "type": tree_type})
+			_trees.append({"pos": candidate, "type": tree_type, "flip": bool(randi() % 2)})
 			return
 
 
