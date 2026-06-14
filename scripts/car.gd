@@ -5,7 +5,7 @@ const MIN_SPEED_KMH := 50.0
 const MAX_SPEED_KMH := 220.0
 const ROAD_LEFT := 760.0
 const ROAD_RIGHT := 1160.0
-const CAR_HALF_WIDTH := 42.0
+const CAR_HALF_WIDTH := 50.0
 
 const ENGINE_LEVELS  := [20.0,  40.0,  60.0]   # accel km/h per second; top = original
 const BRAKE_LEVELS   := [30.0,  60.0, 150.0]   # decel km/h per second; medium = original

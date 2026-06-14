@@ -7,9 +7,9 @@ const OBS_SPEED_KMH := 50.0
 const OBS_SCALE: float = 2.0
 const OBS_TEX_SIZE := 64
 
-# car.png (42x64 @ 2x): opaque x=[1,40] → vis_hw=40, vis_hh=64
-const CAR_VIS_HW := 40.0
-const CAR_VIS_HH := 64.0
+# car.png (FordMustang 64x64 @ 2x): vis_hw=50, vis_hh=60
+const CAR_VIS_HW := 50.0
+const CAR_VIS_HH := 60.0
 
 # Per obstacle type: [vis_hw, vis_hh, texture_path]
 # Bounds measured from opaque pixel extents at scale 2x.
